@@ -24,25 +24,29 @@ type PlanetProps = {
   cloudsTexture?: string
   ringTexture?: string
   currentTime: number
+  year: number
+  realPosition?: number // Gerçek konum (radyan)
 }
 
 // Planet bileşeni
-export default function Planet({ 
-  distance, 
-  size, 
-  color, 
-  orbitSpeed, 
-  rotationPeriod, 
-  emissive, 
-  emissiveIntensity, 
-  hasRings, 
-  startAngle, 
-  moons, 
-  texture, 
-  nightTexture, 
-  cloudsTexture, 
-  ringTexture, 
-  currentTime 
+export default function Planet({
+  distance,
+  size,
+  color,
+  orbitSpeed,
+  rotationPeriod,
+  emissive,
+  emissiveIntensity,
+  hasRings,
+  startAngle,
+  moons,
+  texture,
+  nightTexture,
+  cloudsTexture,
+  ringTexture,
+  currentTime,
+  year,
+  realPosition
 }: PlanetProps) {
   const groupRef = useRef<any>(null)
   const cloudsRef = useRef<any>(null)
@@ -55,16 +59,18 @@ export default function Planet({
   
   useFrame(() => {
     if (groupRef.current && distance > 0) {
-      // Yörünge hareketi
-      const angle = (startAngle || 0) + currentTime * orbitSpeed
+      // Yörünge hareketi: realPosition (yıl başı konumu) + yıl içindeki hareket
+      const baseAngle = realPosition !== undefined ? realPosition : (startAngle || 0)
+      // currentTime yıl içindeki gün sayısı olarak çalışır (0-365 arası)
+      const angle = baseAngle + (currentTime / ONE_DAY_UNITS) * orbitSpeed * 365.25
       groupRef.current.position.x = Math.cos(angle) * distance
       groupRef.current.position.z = Math.sin(angle) * distance
-      
+
       // Kendi ekseni dönüşü - gerçek rotasyon periyoduna göre
       const daysElapsed = currentTime / ONE_DAY_UNITS
       groupRef.current.rotation.y = (2 * Math.PI * daysElapsed * ROTATION_SCALE) / Math.abs(rotationPeriod)
     }
-    
+
     // Bulutlar %20 daha hızlı dönsün (atmosfer etkisi)
     if (cloudsRef.current) {
       const daysElapsed = currentTime / ONE_DAY_UNITS

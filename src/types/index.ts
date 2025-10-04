@@ -2,7 +2,8 @@
 export type TimeControl = {
   speed: number
   isPaused: boolean
-  currentTime: number
+  currentTime: number // gün cinsinden
+  year: number // Hangi yılda başladığımız
 }
 
 // Uydu tipi

@@ -1,18 +1,49 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CameraControlsImpl from 'camera-controls'
 import { planets } from '../constants/planets'
 import { flyToPlanet } from '../utils/navigation'
+import { searchExoplanetTargets, DEMO_TARGETS } from '../services/exoplanetAPI'
+import type { ExoplanetTarget } from '../types/exoplanet'
 
-export default function SearchBar({ controlsRef }: {
+export default function SearchBar({ 
+  controlsRef,
+  onTargetSelect
+}: {
   controlsRef: React.RefObject<CameraControlsImpl | null>
+  onTargetSelect?: (target: ExoplanetTarget) => void
 }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchExpanded, setIsSearchExpanded] = useState(false)
+  const [searchMode, setSearchMode] = useState<'planets' | 'exoplanets'>('planets')
+  const [exoplanetResults, setExoplanetResults] = useState<ExoplanetTarget[]>([])
+  const [isSearching, setIsSearching] = useState(false)
 
-  // Arama sonuçlarını filtrele
+  // Gezegen arama sonuçlarını filtrele
   const filteredPlanets = planets.filter(planet =>
     planet.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  // Exoplanet arama - debounced
+  useEffect(() => {
+    if (searchMode === 'exoplanets' && searchQuery.length >= 2) {
+      setIsSearching(true)
+      const timer = setTimeout(async () => {
+        try {
+          const results = await searchExoplanetTargets(searchQuery)
+          setExoplanetResults(results)
+        } catch (error) {
+          console.error('Arama hatası:', error)
+          setExoplanetResults([])
+        } finally {
+          setIsSearching(false)
+        }
+      }, 300)
+      
+      return () => clearTimeout(timer)
+    } else if (searchMode === 'exoplanets' && searchQuery.length === 0) {
+      setExoplanetResults(DEMO_TARGETS)
+    }
+  }, [searchQuery, searchMode])
 
   const handlePlanetClick = (distance: number) => {
     if (distance === 0) {
@@ -24,37 +55,103 @@ export default function SearchBar({ controlsRef }: {
     setIsSearchExpanded(false)
   }
 
+  const handleExoplanetSelect = (target: ExoplanetTarget) => {
+    onTargetSelect?.(target)
+    setSearchQuery('')
+    setIsSearchExpanded(false)
+  }
+
   return (
     <>
       {/* Floating Search Bar */}
       <div style={{
         position: 'absolute',
-        top: 30,
-        left: 30,
+        top: 16,
+        left: 16,
         zIndex: 1000,
-        width: 320
+        width: 'min(380px, calc(100vw - 580px))',
+        minWidth: 300
       }}>
+        {/* Mode Toggle */}
+        <div style={{
+          display: 'flex',
+          gap: 6,
+          marginBottom: 10
+        }}>
+          <button
+            onClick={() => {
+              setSearchMode('planets')
+              setSearchQuery('')
+            }}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              background: searchMode === 'planets' 
+                ? 'rgba(99, 102, 241, 0.85)' 
+                : 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 10,
+              color: 'white',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              backdropFilter: 'blur(20px)',
+              boxShadow: searchMode === 'planets' ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
+            }}
+          >
+            🪐 Solar
+          </button>
+          <button
+            onClick={() => {
+              setSearchMode('exoplanets')
+              setSearchQuery('')
+              if (!searchQuery) setExoplanetResults(DEMO_TARGETS)
+            }}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              background: searchMode === 'exoplanets' 
+                ? 'rgba(147, 51, 234, 0.85)' 
+                : 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 10,
+              color: 'white',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              backdropFilter: 'blur(20px)',
+              boxShadow: searchMode === 'exoplanets' ? '0 2px 8px rgba(147, 51, 234, 0.3)' : 'none'
+            }}
+          >
+            🔭 Exo
+          </button>
+        </div>
+
         <div style={{ position: 'relative' }}>
           {/* Search Input */}
           <input
             type="text"
-            placeholder="🔍 Gezegen ara..."
+            placeholder={searchMode === 'planets' 
+              ? '🔍 Gezegen ara...' 
+              : '🔍 TIC / EPIC / KOI ara...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsSearchExpanded(true)}
             style={{
               width: '100%',
-              padding: '14px 44px 14px 20px',
-              background: 'rgba(10, 10, 15, 0.85)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: 50,
+              padding: '12px 40px 12px 16px',
+              background: 'rgba(10, 10, 15, 0.88)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 12,
               color: 'white',
-              fontSize: 15,
+              fontSize: 13,
               outline: 'none',
-              transition: 'all 0.3s',
+              transition: 'all 0.2s',
               boxSizing: 'border-box',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
               fontWeight: 400
             }}
           />
@@ -103,7 +200,8 @@ export default function SearchBar({ controlsRef }: {
             overflowY: 'auto',
             animation: 'slideDown 0.3s ease-out'
           }}>
-            {searchQuery && filteredPlanets.length > 0 ? (
+            {/* PLANETS MODE */}
+            {searchMode === 'planets' && searchQuery && filteredPlanets.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {filteredPlanets.map((planet) => (
                   <button
@@ -150,7 +248,7 @@ export default function SearchBar({ controlsRef }: {
                   </button>
                 ))}
               </div>
-            ) : searchQuery ? (
+            ) : searchMode === 'planets' && searchQuery ? (
               <div style={{ 
                 padding: 20, 
                 textAlign: 'center', 
@@ -159,7 +257,7 @@ export default function SearchBar({ controlsRef }: {
               }}>
                 Sonuç bulunamadı
               </div>
-            ) : (
+            ) : searchMode === 'planets' ? (
               <div>
                 <div style={{ 
                   fontSize: 12, 
@@ -216,6 +314,117 @@ export default function SearchBar({ controlsRef }: {
                   ))}
                 </div>
               </div>
+            ) : null}
+
+            {/* EXOPLANETS MODE */}
+            {searchMode === 'exoplanets' && (
+              <div>
+                {isSearching ? (
+                  <div style={{ 
+                    padding: 30, 
+                    textAlign: 'center', 
+                    color: '#888' 
+                  }}>
+                    <div style={{
+                      width: 24,
+                      height: 24,
+                      border: '3px solid rgba(147, 51, 234, 0.3)',
+                      borderTop: '3px solid rgb(147, 51, 234)',
+                      borderRadius: '50%',
+                      margin: '0 auto 12px',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    Aranıyor...
+                  </div>
+                ) : exoplanetResults.length > 0 ? (
+                  <>
+                    <div style={{ 
+                      fontSize: 12, 
+                      color: '#888', 
+                      marginBottom: 12,
+                      fontWeight: 600
+                    }}>
+                      {searchQuery ? 'ARAMA SONUÇLARI' : 'DEMO HEDEFLER'}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {exoplanetResults.map((target) => (
+                        <button
+                          key={target.id}
+                          onClick={() => handleExoplanetSelect(target)}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 6,
+                            padding: '14px 16px',
+                            background: 'rgba(147, 51, 234, 0.1)',
+                            border: '1px solid rgba(147, 51, 234, 0.3)',
+                            borderRadius: 12,
+                            color: 'white',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            textAlign: 'left'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(147, 51, 234, 0.2)'
+                            e.currentTarget.style.transform = 'translateX(4px)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(147, 51, 234, 0.1)'
+                            e.currentTarget.style.transform = 'translateX(0)'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{
+                              padding: '4px 8px',
+                              background: 'rgba(147, 51, 234, 0.3)',
+                              borderRadius: 6,
+                              fontSize: 10,
+                              fontWeight: 700
+                            }}>
+                              {target.type}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 700, fontSize: 14 }}>{target.name}</div>
+                              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2, fontFamily: 'monospace' }}>
+                                {target.id}
+                              </div>
+                            </div>
+                            {target.confirmed && (
+                              <div style={{
+                                padding: '3px 8px',
+                                background: 'rgba(34, 197, 94, 0.2)',
+                                border: '1px solid rgba(34, 197, 94, 0.4)',
+                                borderRadius: 6,
+                                fontSize: 9,
+                                fontWeight: 700,
+                                color: 'rgb(134, 239, 172)'
+                              }}>
+                                ✓ DOĞRULANDI
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ 
+                            fontSize: 11, 
+                            opacity: 0.5,
+                            fontFamily: 'monospace'
+                          }}>
+                            RA: {target.ra.toFixed(3)}° / Dec: {target.dec.toFixed(3)}°
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ 
+                    padding: 20, 
+                    textAlign: 'center', 
+                    color: '#888',
+                    fontSize: 13
+                  }}>
+                    Hedef bulunamadı
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -249,6 +458,11 @@ export default function SearchBar({ controlsRef }: {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+        
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </>

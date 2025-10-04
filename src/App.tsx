@@ -1,22 +1,61 @@
-import { Suspense, useRef, useState } from 'react'
+import { Suspense, useRef, useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
 import CameraControlsImpl from 'camera-controls'
 import type { TimeControl } from './types'
+import type { ExoplanetTarget } from './types/exoplanet'
 import SpaceBackground from './components/SpaceBackground'
 import SolarSystem from './components/SolarSystem'
 import TimeControlPanel from './components/TimeControlPanel'
 import SearchBar from './components/SearchBar'
+import AnalysisPanel from './components/AnalysisPanel'
+import SharePanel from './components/SharePanel'
+import DemoTargetsBar from './components/DemoTargetsBar'
+import SpeedControlPanel from './components/SpeedControlPanel'
+import { parseURLParams, findTargetById, updateURLParams } from './utils/urlParams'
 
 export default function App() {
   const controlsRef = useRef<CameraControlsImpl | null>(null)
   
-  // Zaman kontrolleri
+  // Zaman kontrolleri - Günümüzden başlat (4 Ekim 2025)
+  const currentYear = 2025
+  const currentDayOfYear = 277 // 4 Ekim
+  
   const [timeControl, setTimeControl] = useState<TimeControl>({
-    speed: 1,
+    speed: 0.5, // Başlangıç hızı 0.5x - daha detaylı gözlem için
     isPaused: false,
-    currentTime: 0
+    currentTime: currentDayOfYear,
+    year: currentYear
   })
+  
+  // Seçili exoplanet hedefi
+  const [selectedTarget, setSelectedTarget] = useState<ExoplanetTarget | null>(null)
+  const [sector, setSector] = useState<number | undefined>(undefined)
+  
+  // URL parametrelerinden hedef yükle
+  useEffect(() => {
+    const params = parseURLParams()
+    if (params.target) {
+      const target = findTargetById(params.target)
+      if (target) {
+        setSelectedTarget(target)
+        setSector(params.sector)
+      }
+    }
+  }, [])
+  
+  // Hedef değiştiğinde URL'yi güncelle
+  useEffect(() => {
+    if (selectedTarget) {
+      updateURLParams({
+        target: selectedTarget.id,
+        sector,
+        model: 'v0.1'
+      })
+    } else {
+      updateURLParams({})
+    }
+  }, [selectedTarget, sector])
 
   return (
     <div style={{ 
@@ -26,7 +65,10 @@ export default function App() {
       background: 'linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%)'
     }}>
       {/* Modern Search Bar */}
-      <SearchBar controlsRef={controlsRef} />
+      <SearchBar 
+        controlsRef={controlsRef}
+        onTargetSelect={setSelectedTarget}
+      />
 
       {/* Canvas - Ana 3D Sahne */}
       <Canvas
@@ -56,11 +98,38 @@ export default function App() {
         </Suspense>
       </Canvas>
 
-      {/* Sağ alt köşede zaman kontrol paneli */}
-      <TimeControlPanel 
+      {/* Sol alt: Hız Kontrol Paneli (her zaman görünür) */}
+      <SpeedControlPanel 
         timeControl={timeControl}
         setTimeControl={setTimeControl}
       />
+      
+      {/* Sol üst orta: Zaman kontrol paneli (sadece solar system için) */}
+      {/* {!selectedTarget && (
+        <div style={{ position: 'absolute', top: 90, left: 16, zIndex: 100 }}>
+          <TimeControlPanel 
+            timeControl={timeControl}
+            setTimeControl={setTimeControl}
+          />
+        </div>
+      )} */}
+      
+      {/* Sağ: Exoplanet analiz paneli */}
+      <AnalysisPanel selectedTarget={selectedTarget} />
+      
+      {/* Sağ alt: Paylaşım paneli (exoplanet modunda) */}
+      {selectedTarget && (
+        <SharePanel 
+          target={selectedTarget}
+          sector={sector}
+          modelVersion="v0.1"
+        />
+      )}
+      
+      {/* Demo hedefler (exoplanet modunda değilken) */}
+      {!selectedTarget && (
+        <DemoTargetsBar onSelectTarget={setSelectedTarget} />
+      )}
     </div>
   )
 }
