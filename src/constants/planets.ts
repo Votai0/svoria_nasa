@@ -13,40 +13,15 @@ const ORBITAL_PERIODS = {
   neptune: 164.79132    // 60,190 gün
 }
 
-// Gerçek güneşten uzaklıklar (AU - Astronomical Unit cinsinden)
-// 1 AU = Dünya-Güneş arası mesafe (~150 million km)
-// Kaynak: NASA JPL Solar System Dynamics
-const REAL_DISTANCES_AU = {
-  mercury: 0.387,
-  venus: 0.723,
-  earth: 1.000,
-  mars: 1.524,
-  jupiter: 5.203,  // Gerçekte çok uzak!
-  saturn: 9.537,
-  uranus: 19.191,
-  neptune: 30.069
-}
-
 // Temel hız sabiti (Dünya'nın referans hızı)
 const BASE_SPEED = 0.01
 
 // Gerçek orbital hızları hesapla: speed = BASE_SPEED / period
 const calculateOrbitSpeed = (period: number) => BASE_SPEED / period
 
-// BİREBİR GERÇEK ÖLÇEK - Görsel ölçek faktörü
-// Dünya 10 birim uzaklıkta olacak şekilde tüm oranlar AYNEN korunuyor
-const SCALE_FACTOR = 10.0
-
-// Mesafe ölçeklendirme - GERÇEK AU ORANI × GÖRSEL FAKTÖR
-// Hiçbir logaritma veya değişiklik YOK - tam gerçek oranlar!
-const scaleDistance = (au: number): number => {
-  return au * SCALE_FACTOR
-}
-
-// Gezegen verileri - %100 GERÇEK FİZİKSEL ORANLAR
-// distance = gerçek AU × 10 (oranlar 1:1 korunuyor)
-// orbitSpeed = gerçek yörünge periyotları
-// rotationPeriod = gerçek dönüş hızları
+// Gezegen verileri - FİZİKSEL OLARAK DOĞRU YÖRÜNGE HIZLARI
+// orbitSpeed = gerçek evrendeki yörünge periyoduna göre hesaplanmış
+// rotationPeriod = kendi ekseni dönüş hızı (Dünya günü cinsinden)
 export const planets: Planet[] = [
   { 
     name: 'Güneş', 
@@ -62,7 +37,7 @@ export const planets: Planet[] = [
   },
   { 
     name: 'Merkür', 
-    distance: scaleDistance(REAL_DISTANCES_AU.mercury), // ~3.1
+    distance: 4, 
     size: 0.3, 
     color: '#8C7853', 
     orbitSpeed: calculateOrbitSpeed(ORBITAL_PERIODS.mercury), // 0.0415 (en hızlı gezegen!)
@@ -72,7 +47,7 @@ export const planets: Planet[] = [
   },
   { 
     name: 'Venüs', 
-    distance: scaleDistance(REAL_DISTANCES_AU.venus), // ~5.8
+    distance: 6, 
     size: 0.5, 
     color: '#FFC649', 
     orbitSpeed: calculateOrbitSpeed(ORBITAL_PERIODS.venus), // 0.0163
@@ -82,7 +57,7 @@ export const planets: Planet[] = [
   },
   { 
     name: 'Dünya', 
-    distance: scaleDistance(REAL_DISTANCES_AU.earth), // 8.0
+    distance: 8, 
     size: 0.6, 
     color: '#4A90E2', 
     orbitSpeed: calculateOrbitSpeed(ORBITAL_PERIODS.earth), // 0.01 (referans)
@@ -94,7 +69,7 @@ export const planets: Planet[] = [
     moons: [
       { 
         name: 'Ay', 
-        distance: 1.5, // Dünya'dan biraz daha uzak (çakışmayı önlemek için)
+        distance: 1.2, 
         size: 0.15, 
         color: '#C0C0C0', 
         orbitSpeed: calculateOrbitSpeed(27.3 / 365.25), // 27.3 günde Dünya etrafında tur
@@ -106,7 +81,7 @@ export const planets: Planet[] = [
   },
   { 
     name: 'Mars', 
-    distance: scaleDistance(REAL_DISTANCES_AU.mars), // ~12.2
+    distance: 10, 
     size: 0.4, 
     color: '#E27B58', 
     orbitSpeed: calculateOrbitSpeed(ORBITAL_PERIODS.mars), // 0.00532
@@ -114,13 +89,13 @@ export const planets: Planet[] = [
     startAngle: 3.5,
     texture: '/textures/planets/8k_mars.jpg',
     moons: [
-      { name: 'Phobos', distance: 0.6, size: 0.06, color: '#8B7355', orbitSpeed: calculateOrbitSpeed(0.319 / 365.25), rotationPeriod: 0.32, startAngle: 0 },
-      { name: 'Deimos', distance: 0.9, size: 0.05, color: '#A0826D', orbitSpeed: calculateOrbitSpeed(1.263 / 365.25), rotationPeriod: 1.26, startAngle: 3 }
+      { name: 'Phobos', distance: 0.5, size: 0.06, color: '#8B7355', orbitSpeed: calculateOrbitSpeed(0.319 / 365.25), rotationPeriod: 0.32, startAngle: 0 },
+      { name: 'Deimos', distance: 0.7, size: 0.05, color: '#A0826D', orbitSpeed: calculateOrbitSpeed(1.263 / 365.25), rotationPeriod: 1.26, startAngle: 3 }
     ]
   },
   { 
     name: 'Jüpiter', 
-    distance: scaleDistance(REAL_DISTANCES_AU.jupiter), // ~29.3 (İÇ GEZEGENLERDEN ÇOK UZAK!)
+    distance: 14, 
     size: 1.4, 
     color: '#C88B3A', 
     orbitSpeed: calculateOrbitSpeed(ORBITAL_PERIODS.jupiter), // 0.000843 (11.86 yılda tur!)
@@ -128,15 +103,15 @@ export const planets: Planet[] = [
     startAngle: 4.8,
     texture: '/textures/planets/8k_jupiter.jpg',
     moons: [
-      { name: 'Io', distance: 2.2, size: 0.2, color: '#FFD700', orbitSpeed: calculateOrbitSpeed(1.77 / 365.25), rotationPeriod: 1.77, startAngle: 0 },
-      { name: 'Europa', distance: 2.8, size: 0.18, color: '#D4AF37', orbitSpeed: calculateOrbitSpeed(3.55 / 365.25), rotationPeriod: 3.55, startAngle: 1.5 },
-      { name: 'Ganymede', distance: 3.5, size: 0.25, color: '#8B8B7A', orbitSpeed: calculateOrbitSpeed(7.15 / 365.25), rotationPeriod: 7.15, startAngle: 3 },
-      { name: 'Callisto', distance: 4.3, size: 0.22, color: '#6B6B5A', orbitSpeed: calculateOrbitSpeed(16.7 / 365.25), rotationPeriod: 16.7, startAngle: 4.5 }
+      { name: 'Io', distance: 2, size: 0.2, color: '#FFD700', orbitSpeed: calculateOrbitSpeed(1.77 / 365.25), rotationPeriod: 1.77, startAngle: 0 },
+      { name: 'Europa', distance: 2.5, size: 0.18, color: '#D4AF37', orbitSpeed: calculateOrbitSpeed(3.55 / 365.25), rotationPeriod: 3.55, startAngle: 1.5 },
+      { name: 'Ganymede', distance: 3, size: 0.25, color: '#8B8B7A', orbitSpeed: calculateOrbitSpeed(7.15 / 365.25), rotationPeriod: 7.15, startAngle: 3 },
+      { name: 'Callisto', distance: 3.6, size: 0.22, color: '#6B6B5A', orbitSpeed: calculateOrbitSpeed(16.7 / 365.25), rotationPeriod: 16.7, startAngle: 4.5 }
     ]
   },
   { 
     name: 'Satürn', 
-    distance: scaleDistance(REAL_DISTANCES_AU.saturn), // ~34.2
+    distance: 18, 
     size: 1.2, 
     color: '#FAD5A5', 
     orbitSpeed: calculateOrbitSpeed(ORBITAL_PERIODS.saturn), // 0.000340 (29.5 yılda tur!)
@@ -146,14 +121,14 @@ export const planets: Planet[] = [
     texture: '/textures/planets/8k_saturn.jpg',
     ringTexture: '/textures/planets/8k_saturn_ring_alpha.png',
     moons: [
-      { name: 'Titan', distance: 3.5, size: 0.24, color: '#FFA500', orbitSpeed: calculateOrbitSpeed(15.95 / 365.25), rotationPeriod: 15.95, startAngle: 0 },
-      { name: 'Rhea', distance: 2.7, size: 0.12, color: '#D3D3D3', orbitSpeed: calculateOrbitSpeed(4.52 / 365.25), rotationPeriod: 4.52, startAngle: 2 },
-      { name: 'Enceladus', distance: 2.1, size: 0.1, color: '#F0F8FF', orbitSpeed: calculateOrbitSpeed(1.37 / 365.25), rotationPeriod: 1.37, startAngle: 4 }
+      { name: 'Titan', distance: 3, size: 0.24, color: '#FFA500', orbitSpeed: calculateOrbitSpeed(15.95 / 365.25), rotationPeriod: 15.95, startAngle: 0 },
+      { name: 'Rhea', distance: 2.3, size: 0.12, color: '#D3D3D3', orbitSpeed: calculateOrbitSpeed(4.52 / 365.25), rotationPeriod: 4.52, startAngle: 2 },
+      { name: 'Enceladus', distance: 1.8, size: 0.1, color: '#F0F8FF', orbitSpeed: calculateOrbitSpeed(1.37 / 365.25), rotationPeriod: 1.37, startAngle: 4 }
     ]
   },
   { 
     name: 'Uranüs', 
-    distance: scaleDistance(REAL_DISTANCES_AU.uranus), // ~39.5
+    distance: 22, 
     size: 0.9, 
     color: '#4FD0E7', 
     orbitSpeed: calculateOrbitSpeed(ORBITAL_PERIODS.uranus), // 0.000119 (84 yılda tur!)
@@ -161,13 +136,13 @@ export const planets: Planet[] = [
     startAngle: 5.5,
     texture: '/textures/planets/2k_uranus.jpg',
     moons: [
-      { name: 'Titania', distance: 2.1, size: 0.15, color: '#B0C4DE', orbitSpeed: calculateOrbitSpeed(8.71 / 365.25), rotationPeriod: 8.71, startAngle: 0 },
-      { name: 'Oberon', distance: 2.6, size: 0.14, color: '#A0B0C0', orbitSpeed: calculateOrbitSpeed(13.46 / 365.25), rotationPeriod: 13.46, startAngle: 3 }
+      { name: 'Titania', distance: 1.8, size: 0.15, color: '#B0C4DE', orbitSpeed: calculateOrbitSpeed(8.71 / 365.25), rotationPeriod: 8.71, startAngle: 0 },
+      { name: 'Oberon', distance: 2.2, size: 0.14, color: '#A0B0C0', orbitSpeed: calculateOrbitSpeed(13.46 / 365.25), rotationPeriod: 13.46, startAngle: 3 }
     ]
   },
   { 
     name: 'Neptün', 
-    distance: scaleDistance(REAL_DISTANCES_AU.neptune), // ~43.2
+    distance: 26, 
     size: 0.85, 
     color: '#4166F5', 
     orbitSpeed: calculateOrbitSpeed(ORBITAL_PERIODS.neptune), // 0.0000607 (165 yılda tur!)
@@ -175,7 +150,7 @@ export const planets: Planet[] = [
     startAngle: 2.8,
     texture: '/textures/planets/2k_neptune.jpg',
     moons: [
-      { name: 'Triton', distance: 2.3, size: 0.17, color: '#ADD8E6', orbitSpeed: -calculateOrbitSpeed(5.88 / 365.25), rotationPeriod: -5.88, startAngle: 0 } // retrograde orbit!
+      { name: 'Triton', distance: 1.9, size: 0.17, color: '#ADD8E6', orbitSpeed: -calculateOrbitSpeed(5.88 / 365.25), rotationPeriod: -5.88, startAngle: 0 } // retrograde orbit!
     ]
   },
 ]

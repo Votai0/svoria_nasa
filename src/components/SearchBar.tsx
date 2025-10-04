@@ -7,12 +7,10 @@ import type { ExoplanetTarget } from '../types/exoplanet'
 
 export default function SearchBar({ 
   controlsRef,
-  onTargetSelect,
-  onPlanetSelect
+  onTargetSelect
 }: {
   controlsRef: React.RefObject<CameraControlsImpl | null>
   onTargetSelect?: (target: ExoplanetTarget) => void
-  onPlanetSelect?: (planetName: string) => void
 }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchExpanded, setIsSearchExpanded] = useState(false)
@@ -46,13 +44,12 @@ export default function SearchBar({
     }
   }, [searchQuery])
 
-  const handlePlanetClick = (distance: number, planetName: string) => {
+  const handlePlanetClick = (distance: number) => {
     if (distance === 0) {
       flyToPlanet(controlsRef, 5) // Güneş için
     } else {
       flyToPlanet(controlsRef, distance)
     }
-    onPlanetSelect?.(planetName)
     setSearchQuery('')
     setIsSearchExpanded(false)
   }
@@ -177,7 +174,7 @@ export default function SearchBar({
                       {filteredPlanets.map((planet) => (
                         <button
                           key={planet.name}
-                          onClick={() => handlePlanetClick(planet.distance, planet.name)}
+                          onClick={() => handlePlanetClick(planet.distance)}
                           style={{
                             display: 'flex',
                             alignItems: 'center',

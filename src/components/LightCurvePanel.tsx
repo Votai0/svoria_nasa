@@ -143,12 +143,7 @@ export default function LightCurvePanel({
   }
   
   return (
-    <div style={{ 
-      height: '100%',
-      display: 'grid',
-      gridTemplateRows: 'auto auto 1fr auto',
-      overflow: 'hidden'
-    }}>
+    <div style={{ height: '100%', overflow: 'hidden' }}>
       {/* Controls Section */}
       <div style={{
         padding: '16px 20px',
@@ -384,7 +379,7 @@ export default function LightCurvePanel({
       )}
       
       {/* Canvas */}
-      <div style={{ position: 'relative', minHeight: 300 }}>
+      <div style={{ flex: 1, position: 'relative', minHeight: 300 }}>
         {isLoading ? (
           <div style={{
             position: 'absolute',
