@@ -122,7 +122,7 @@ export default function SpeedControlPanel({ timeControl, setTimeControl }: Props
       />
 
       {/* Preset Butonları - Detaylı kontrol */}
-<div>
+      <div style={{ whiteSpace: 'nowrap' }}>
   {[
     { label: '0.01×', value: 0.01, hint: 'Ultra yavaş - Gerçek zamana yakın' },
     { label: '0.1×', value: 0.1, hint: '10x yavaş - İç gezegenler' },
@@ -138,7 +138,8 @@ export default function SpeedControlPanel({ timeControl, setTimeControl }: Props
       title={preset.hint}
       style={{
         display: 'inline-block',
-        marginRight: idx !== arr.length - 1 ? '6px' : 0, // sadece sonuncuda boşluk yok
+        width: '48px', // tüm butonlar aynı genişlikte
+        marginRight: idx !== arr.length - 1 ? '6px' : 0,
         padding: '6px 3px',
         background: timeControl.speed === preset.value
           ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
@@ -155,23 +156,16 @@ export default function SpeedControlPanel({ timeControl, setTimeControl }: Props
         boxShadow: timeControl.speed === preset.value
           ? '0 2px 8px rgba(102, 126, 234, 0.3)'
           : 'none',
-        opacity: timeControl.isPaused ? 0.5 : 1
-      }}
-      onMouseEnter={(e) => {
-        if (timeControl.speed !== preset.value && !timeControl.isPaused) {
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (timeControl.speed !== preset.value) {
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
-        }
+        opacity: timeControl.isPaused ? 0.5 : 1,
+        textAlign: 'center'
       }}
     >
       {preset.label}
     </button>
   ))}
 </div>
+
+
 
 {/* Açıklama - Dinamik */}
 <div style={{

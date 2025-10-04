@@ -143,7 +143,7 @@ export default function LightCurvePanel({
   }
   
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100%', display: 'inline', flexDirection: 'column' }}>
       {/* Toolbar */}
       <div style={{
         padding: '12px 16px',
@@ -156,17 +156,17 @@ export default function LightCurvePanel({
       }}>
         {/* Data Type Toggle - Mükemmel hizalanmış butonlar */}
         <div style={{ 
-          display: 'flex', 
-          gap: 6,
+          display: 'inline',
           alignItems: 'center' // Parent div'de de hizalama
         }}>
           <button
             onClick={() => onDataTypeChange('SAP')}
             disabled={isLoading || !data}
             style={{
-              display: 'flex',
+              display: 'inline',
               alignItems: 'center',
               justifyContent: 'center',
+              marginRight: 12,
               padding: 0, // Padding kaldırıldı, boyut sabit
               background: selectedDataType === 'SAP' 
                 ? 'rgba(147, 51, 234, 0.8)' 
@@ -192,7 +192,7 @@ export default function LightCurvePanel({
             onClick={() => onDataTypeChange('PDCSAP')}
             disabled={isLoading || !data}
             style={{
-              display: 'flex',
+              display: 'inline',
               alignItems: 'center',
               justifyContent: 'center',
               padding: 0, // Padding kaldırıldı, boyut sabit
@@ -220,9 +220,10 @@ export default function LightCurvePanel({
         
         {/* Quality Flags Toggle - Hizalanmış */}
         <label style={{ 
-          display: 'flex', 
+          display: 'inline', 
           alignItems: 'center', 
-          gap: 6, 
+          verticalAlign: 'middle',
+           
           cursor: 'pointer',
           height: 32, // Butonlarla aynı yükseklik
           margin: 0
@@ -233,6 +234,7 @@ export default function LightCurvePanel({
             onChange={(e) => setShowQualityFlags(e.target.checked)}
             disabled={!data}
             style={{ 
+              display: 'inline',
               cursor: data ? 'pointer' : 'not-allowed',
               width: 14,
               height: 14,
@@ -248,7 +250,10 @@ export default function LightCurvePanel({
           </span>
         </label>
         
-        <div style={{ flex: 1 }} />
+        <div style={{ 
+          display: 'inline',
+          alignItems: 'center',
+          verticalAlign: 'middle'  }} />
         
         {/* Actions - Tüm butonlar hizalı */}
         {data && (
@@ -256,10 +261,10 @@ export default function LightCurvePanel({
             <button
               onClick={handleDownloadCSV}
               style={{
-                display: 'flex',
+                display: 'inline',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0 12px',
+                padding: 0, // Padding kaldırıldı, boyut sabit
                 background: 'rgba(34, 197, 94, 0.2)',
                 border: '1px solid rgba(34, 197, 94, 0.4)',
                 borderRadius: 8,
@@ -268,9 +273,13 @@ export default function LightCurvePanel({
                 fontWeight: 600,
                 cursor: 'pointer',
                 height: 32, // Aynı yükseklik
-                minHeight: 32,
-                whiteSpace: 'nowrap',
-                boxSizing: 'border-box'
+                width: 50, // Sabit genişlik (daha uzun text için)
+                minHeight: 32, // Garanti
+                minWidth: 32,
+                opacity: isLoading || !data ? 0.5 : 1,
+                boxSizing: 'border-box', // Border dahil hesaplama
+                flexShrink: 0, // Küçülmeyi engelle
+              
               }}
             >
               📥 CSV
@@ -278,10 +287,10 @@ export default function LightCurvePanel({
             <button
               onClick={handleDownloadPNG}
               style={{
-                display: 'flex',
+                display: 'inline',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0 12px',
+                padding: 0, // Padding kaldırıldı, boyut sabit
                 background: 'rgba(59, 130, 246, 0.2)',
                 border: '1px solid rgba(59, 130, 246, 0.4)',
                 borderRadius: 8,
@@ -290,9 +299,13 @@ export default function LightCurvePanel({
                 fontWeight: 600,
                 cursor: 'pointer',
                 height: 32, // Aynı yükseklik
-                minHeight: 32,
-                whiteSpace: 'nowrap',
-                boxSizing: 'border-box'
+                width: 50, // Sabit genişlik (daha uzun text için)
+                minHeight: 32, // Garanti
+                minWidth: 32,
+                opacity: isLoading || !data ? 0.5 : 1,
+                boxSizing: 'border-box', // Border dahil hesaplama
+                flexShrink: 0 // Küçülmeyi engelle  
+           
               }}
             >
               📥 PNG
@@ -301,9 +314,10 @@ export default function LightCurvePanel({
               <button
                 onClick={onAnalyze}
                 style={{
-                  display: 'flex',
+                  display: 'inline',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  verticalAlign: 'middle',
                   padding: '0 16px',
                   background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.8), rgba(79, 70, 229, 0.8))',
                   border: '1px solid rgba(147, 51, 234, 0.4)',
@@ -315,8 +329,7 @@ export default function LightCurvePanel({
                   boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)',
                   height: 32, // Aynı yükseklik
                   minHeight: 32,
-                  whiteSpace: 'nowrap',
-                  boxSizing: 'border-box'
+                  
                 }}
               >
                 ⚡ Analiz Et
