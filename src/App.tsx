@@ -2,13 +2,13 @@ import { Suspense, useRef, useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
 import CameraControlsImpl from 'camera-controls'
-import type { TimeControl } from './types'
+import type { TimeControl, Planet } from './types'
 import type { ExoplanetTarget } from './types/exoplanet'
+import { planets } from './constants/planets'
 import SpaceBackground from './components/SpaceBackground'
 import SolarSystem from './components/SolarSystem'
 import SearchBar from './components/SearchBar'
 import AnalysisPanel from './components/AnalysisPanel'
-import SharePanel from './components/SharePanel'
 import DemoTargetsBar from './components/DemoTargetsBar'
 import SpeedControlPanel from './components/SpeedControlPanel'
 import TimeSlider from './components/TimeSlider'
@@ -31,6 +31,9 @@ export default function App() {
   // Seçili exoplanet hedefi
   const [selectedTarget, setSelectedTarget] = useState<ExoplanetTarget | null>(null)
   const [sector, setSector] = useState<number | undefined>(undefined)
+  
+  // Seçili Solar Sistem gezegeni
+  const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null)
   
   // URL parametrelerinden hedef yükle
   useEffect(() => {
@@ -67,7 +70,17 @@ export default function App() {
       {/* Modern Search Bar */}
       <SearchBar 
         controlsRef={controlsRef}
-        onTargetSelect={setSelectedTarget}
+        onTargetSelect={(target) => {
+          setSelectedTarget(target)
+          setSelectedPlanet(null) // Exoplanet seçilince gezegen seçimini temizle
+        }}
+        onPlanetSelect={(planetName) => {
+          const planet = planets.find(p => p.name === planetName)
+          if (planet) {
+            setSelectedPlanet(planet)
+            setSelectedTarget(null) // Gezegen seçilince exoplanet seçimini temizle
+          }
+        }}
       />
 
       {/* Canvas - Ana 3D Sahne */}
@@ -120,17 +133,11 @@ export default function App() {
         </div>
       )} */}
       
-      {/* Sağ: Exoplanet analiz paneli */}
-      <AnalysisPanel selectedTarget={selectedTarget} />
-      
-      {/* Sağ alt: Paylaşım paneli (exoplanet modunda) */}
-      {selectedTarget && (
-        <SharePanel 
-          target={selectedTarget}
-          sector={sector}
-          modelVersion="v0.1"
-        />
-      )}
+      {/* Sağ: Analiz paneli (hem gezegen hem exoplanet) */}
+      <AnalysisPanel 
+        selectedTarget={selectedTarget} 
+        selectedPlanet={selectedPlanet}
+      />
       
       {/* Demo hedefler (exoplanet modunda değilken) */}
       {!selectedTarget && (

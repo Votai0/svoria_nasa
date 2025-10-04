@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { Planet } from '../types'
 import type { 
   ExoplanetTarget, 
   LightCurveData, 
@@ -25,9 +26,10 @@ type AnalysisTab = 'lightcurve' | 'periodogram' | 'folded' | 'model' | 'catalog'
 
 type Props = {
   selectedTarget: ExoplanetTarget | null
+  selectedPlanet: Planet | null
 }
 
-export default function AnalysisPanel({ selectedTarget }: Props) {
+export default function AnalysisPanel({ selectedTarget, selectedPlanet }: Props) {
   const [activeTab, setActiveTab] = useState<AnalysisTab>('lightcurve')
   const [dataType, setDataType] = useState<'SAP' | 'PDCSAP'>('PDCSAP')
   
@@ -202,9 +204,9 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
             marginBottom: 6,
             textTransform: 'uppercase'
           }}>
-            Exoplanet Analysis
+            {selectedPlanet ? 'Gezegen Bilgileri' : 'Exoplanet Analysis'}
           </div>
-          {selectedTarget && (
+          {(selectedTarget || selectedPlanet) && (
             <div style={{
               fontSize: 18,
               fontWeight: 500,
@@ -214,18 +216,19 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
             }}>
-              {selectedTarget.name}
+              {selectedPlanet ? selectedPlanet.name : selectedTarget?.name}
             </div>
           )}
         </div>
         
-        {/* Navigation Tabs */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
-          gap: 6,
-          marginBottom: 12
-        }}>
+        {/* Navigation Tabs - sadece exoplanet için */}
+        {!selectedPlanet && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: 6,
+            marginBottom: 12
+          }}>
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -257,10 +260,11 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
               {tab.icon}
             </button>
           ))}
-        </div>
+          </div>
+        )}
 
-        {/* Action Button */}
-        {lightCurve && selectedPeriod && !prediction && (
+        {/* Action Button - sadece exoplanet için */}
+        {!selectedPlanet && lightCurve && selectedPeriod && !prediction && (
           <button
             onClick={handlePredict}
             disabled={isLoadingPrediction}
@@ -325,7 +329,7 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
         overflow: 'hidden',
         position: 'relative'
       }}>
-        {!selectedTarget ? (
+        {!selectedTarget && !selectedPlanet ? (
           <div style={{
             height: '100%',
             textAlign: 'center',
@@ -343,9 +347,11 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
               margin: '0 auto',
               lineHeight: 1.5
             }}>
-              Select an exoplanet target to begin analysis
+              Bir gezegen veya exoplanet seçin
             </div>
           </div>
+        ) : selectedPlanet ? (
+          <PlanetInfoPanel planet={selectedPlanet} />
         ) : (
           <>
             {activeTab === 'lightcurve' && (
@@ -363,7 +369,7 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
                 data={periodogram}
                 isLoading={isLoadingBLS}
                 onPeriodSelect={handleSelectPeriod}
-                selectedPeriod={selectedPeriod}
+                selectedPeriod={selectedPeriod || undefined}
               />
             )}
             
@@ -393,8 +399,8 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
         )}
       </div>
       
-      {/* Status Footer */}
-      {selectedTarget && (
+      {/* Status Footer - sadece exoplanet için */}
+      {selectedTarget && !selectedPlanet && (
         <div style={{
           position: 'absolute',
           bottom: 0,
@@ -470,6 +476,184 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// Solar Sistem gezegeni bilgi paneli
+function PlanetInfoPanel({ planet }: { planet: Planet }) {
+  return (
+    <div style={{
+      height: '100%',
+      overflowY: 'auto',
+      padding: '24px',
+      color: 'white'
+    }}>
+      <div style={{
+        marginBottom: 24,
+        textAlign: 'center'
+      }}>
+        <div style={{
+          width: 120,
+          height: 120,
+          margin: '0 auto 16px',
+          borderRadius: '50%',
+          background: planet.color,
+          boxShadow: `0 0 40px ${planet.color}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 48
+        }}>
+          {planet.name === 'Güneş' ? '☀️' : '🪐'}
+        </div>
+        <h2 style={{
+          fontSize: 28,
+          fontWeight: 600,
+          margin: 0,
+          color: planet.color
+        }}>
+          {planet.name}
+        </h2>
+      </div>
+
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16
+      }}>
+        <InfoRow label="Güneş'e Uzaklık" value={planet.distance === 0 ? 'Merkez' : `${planet.distance} AU`} />
+        <InfoRow label="Çap" value={`${planet.size.toFixed(1)} birim`} />
+        <InfoRow label="Yörünge Hızı" value={planet.distance === 0 ? 'Sabit' : `${planet.orbitSpeed.toFixed(6)} rad/gün`} />
+        <InfoRow 
+          label="Dönüş Periyodu" 
+          value={planet.rotationPeriod === 0 
+            ? 'Yok' 
+            : `${Math.abs(planet.rotationPeriod).toFixed(1)} Dünya günü${planet.rotationPeriod < 0 ? ' (retrograde)' : ''}`
+          } 
+        />
+        
+        {planet.moons && planet.moons.length > 0 && (
+          <>
+            <div style={{
+              marginTop: 16,
+              paddingTop: 16,
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <h3 style={{
+                fontSize: 16,
+                fontWeight: 600,
+                marginBottom: 12,
+                color: 'rgba(255, 255, 255, 0.8)'
+              }}>
+                Uydular ({planet.moons.length})
+              </h3>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12
+              }}>
+                {planet.moons.map((moon) => (
+                  <div
+                    key={moon.name}
+                    style={{
+                      padding: '12px 16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: 8,
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      marginBottom: 8
+                    }}>
+                      <div style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: moon.color,
+                        boxShadow: `0 0 8px ${moon.color}`
+                      }} />
+                      <div style={{
+                        fontWeight: 600,
+                        fontSize: 14
+                      }}>
+                        {moon.name}
+                      </div>
+                    </div>
+                    <div style={{
+                      fontSize: 11,
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      paddingLeft: 18
+                    }}>
+                      Uzaklık: {moon.distance.toFixed(1)} birim • Çap: {moon.size.toFixed(2)} birim
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {planet.hasRings && (
+          <div style={{
+            marginTop: 8,
+            padding: '12px 16px',
+            background: 'rgba(255, 215, 0, 0.1)',
+            border: '1px solid rgba(255, 215, 0, 0.3)',
+            borderRadius: 8,
+            fontSize: 13,
+            color: 'rgba(255, 215, 0, 0.9)'
+          }}>
+            ✨ Bu gezegen halka sistemine sahiptir
+          </div>
+        )}
+
+        <div style={{
+          marginTop: 16,
+          padding: '16px',
+          background: 'rgba(99, 102, 241, 0.1)',
+          border: '1px solid rgba(99, 102, 241, 0.3)',
+          borderRadius: 8,
+          fontSize: 12,
+          color: 'rgba(255, 255, 255, 0.7)',
+          lineHeight: 1.6
+        }}>
+          <strong style={{ color: 'rgba(99, 102, 241, 1)' }}>ℹ️ Not:</strong> Bu veriler Solar Sistemimizin gerçek astronomik ölçümlerine dayanmaktadır. Yörünge hızları ve dönüş periyotları NASA JPL verilerinden alınmıştır.
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '12px 16px',
+      background: 'rgba(255, 255, 255, 0.03)',
+      borderRadius: 8,
+      border: '1px solid rgba(255, 255, 255, 0.08)'
+    }}>
+      <div style={{
+        fontSize: 13,
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontWeight: 500
+      }}>
+        {label}
+      </div>
+      <div style={{
+        fontSize: 14,
+        color: 'rgba(255, 255, 255, 0.95)',
+        fontWeight: 600,
+        fontFamily: 'monospace'
+      }}>
+        {value}
+      </div>
     </div>
   )
 }
