@@ -184,8 +184,9 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet }: Props)
       border: '1px solid rgba(255, 255, 255, 0.08)',
       borderRadius: 12,
       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.7)',
-      overflow: 'hidden',
-      zIndex: 100
+      zIndex: 100,
+      display: 'grid',
+      gridTemplateRows: 'auto auto 1fr auto'
     }}>
       {/* Header Section */}
       <div style={{
@@ -325,8 +326,7 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet }: Props)
       
       {/* Main Content Area */}
       <div style={{ 
-        height: 'calc(100% - 180px)',
-        overflow: 'hidden',
+        overflow: 'auto',
         position: 'relative'
       }}>
         {!selectedTarget && !selectedPlanet ? (
@@ -402,10 +402,6 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet }: Props)
       {/* Status Footer - sadece exoplanet için */}
       {selectedTarget && !selectedPlanet && (
         <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
           padding: '12px 24px',
           background: '#202020',
           borderTop: '1px solid rgba(255, 255, 255, 0.06)'

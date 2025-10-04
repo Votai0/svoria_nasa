@@ -123,21 +123,17 @@ export default function App() {
         setTimeControl={setTimeControl}
       />
       
-      {/* Sol üst orta: Zaman kontrol paneli (sadece solar system için) */}
-      {/* {!selectedTarget && (
-        <div style={{ position: 'absolute', top: 90, left: 16, zIndex: 100 }}>
-          <TimeControlPanel 
-            timeControl={timeControl}
-            setTimeControl={setTimeControl}
-          />
-        </div>
-      )} */}
+      {/* Sağ: Exoplanet analiz paneli */}
+      <AnalysisPanel selectedTarget={selectedTarget} />
       
-      {/* Sağ: Analiz paneli (hem gezegen hem exoplanet) */}
-      <AnalysisPanel 
-        selectedTarget={selectedTarget} 
-        selectedPlanet={selectedPlanet}
-      />
+      {/* Sağ alt: Paylaşım paneli (exoplanet modunda) */}
+      {selectedTarget && (
+        <SharePanel 
+          target={selectedTarget}
+          sector={sector}
+          modelVersion="v0.1"
+        />
+      )}
       
       {/* Demo hedefler (exoplanet modunda değilken) */}
       {!selectedTarget && (
