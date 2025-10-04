@@ -26,6 +26,7 @@ type PlanetProps = {
   currentTime: number
   year: number
   realPosition?: number // Gerçek konum (radyan)
+  onClick?: () => void // Tıklama eventi
 }
 
 // Planet bileşeni
@@ -46,7 +47,8 @@ export default function Planet({
   ringTexture,
   currentTime,
   year,
-  realPosition
+  realPosition,
+  onClick
 }: PlanetProps) {
   const groupRef = useRef<any>(null)
   const cloudsRef = useRef<any>(null)
@@ -95,7 +97,16 @@ export default function Planet({
     })
     
     return (
-      <mesh ref={sunRef} position={[0, 0, 0]}>
+      <mesh 
+        ref={sunRef} 
+        position={[0, 0, 0]}
+        onClick={(e) => {
+          e.stopPropagation()
+          onClick?.()
+        }}
+        onPointerOver={() => document.body.style.cursor = 'pointer'}
+        onPointerOut={() => document.body.style.cursor = 'default'}
+      >
         <sphereGeometry args={[size, 64, 64]} />
         <meshStandardMaterial 
           map={planetTexture}
@@ -118,7 +129,14 @@ export default function Planet({
       {/* Gezegen ve halkaları bir arada */}
       <group ref={groupRef}>
         {/* Gezegen */}
-        <mesh>
+        <mesh
+          onClick={(e) => {
+            e.stopPropagation()
+            onClick?.()
+          }}
+          onPointerOver={() => document.body.style.cursor = 'pointer'}
+          onPointerOut={() => document.body.style.cursor = 'default'}
+        >
           <sphereGeometry args={[size, 64, 64]} />
           {nightMap ? (
             // Dünya için özel gece/gündüz sistemi
