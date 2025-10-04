@@ -447,6 +447,7 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet, isVisibl
               <CatalogPanel
                 catalogInfo={catalogInfo}
                 isLoading={isLoadingCatalog}
+                koiData={selectedTarget?.koiData}
               />
             )}
           </>

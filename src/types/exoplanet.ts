@@ -6,6 +6,7 @@ export type ExoplanetTarget = {
   dec: number // Declination
   type: 'TIC' | 'EPIC' | 'KOI' | 'TOI'
   confirmed?: boolean
+  koiData?: KOIPlanet // Tam KOI verisi (varsa)
 }
 
 // Light curve veri noktası

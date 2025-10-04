@@ -1,11 +1,12 @@
-import type { CatalogInfo } from '../types/exoplanet'
+import type { CatalogInfo, KOIPlanet } from '../types/exoplanet'
 
 type Props = {
   catalogInfo: CatalogInfo | null
   isLoading: boolean
+  koiData?: KOIPlanet | null // Detaylı KOI verisi
 }
 
-export default function CatalogPanel({ catalogInfo, isLoading }: Props) {
+export default function CatalogPanel({ catalogInfo, isLoading, koiData }: Props) {
   
   if (isLoading) {
     return (
@@ -104,123 +105,38 @@ export default function CatalogPanel({ catalogInfo, isLoading }: Props) {
           gap: 10
         }}>
           {catalogInfo.stellar.teff && (
-            <div style={{
-              padding: '12px 14px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: 10,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Etkin Sıcaklık (T<sub>eff</sub>)
-              </span>
-              <span style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: 'white',
-                fontFamily: 'monospace'
-              }}>
-                {catalogInfo.stellar.teff.toLocaleString()} K
-              </span>
-            </div>
+            <DataRow
+              label="Etkin Sıcaklık (Teff)"
+              value={`${catalogInfo.stellar.teff.toLocaleString()} K`}
+            />
           )}
           
           {catalogInfo.stellar.radius && (
-            <div style={{
-              padding: '12px 14px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: 10,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Yarıçap (R<sub>⊙</sub>)
-              </span>
-              <span style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: 'white',
-                fontFamily: 'monospace'
-              }}>
-                {catalogInfo.stellar.radius.toFixed(3)} R<sub>⊙</sub>
-              </span>
-            </div>
+            <DataRow
+              label="Yarıçap (R☉)"
+              value={`${catalogInfo.stellar.radius.toFixed(3)} R☉`}
+            />
           )}
           
           {catalogInfo.stellar.mass && (
-            <div style={{
-              padding: '12px 14px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: 10,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Kütle (M<sub>⊙</sub>)
-              </span>
-              <span style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: 'white',
-                fontFamily: 'monospace'
-              }}>
-                {catalogInfo.stellar.mass.toFixed(3)} M<sub>⊙</sub>
-              </span>
-            </div>
+            <DataRow
+              label="Kütle (M☉)"
+              value={`${catalogInfo.stellar.mass.toFixed(3)} M☉`}
+            />
           )}
           
           {catalogInfo.stellar.logg && (
-            <div style={{
-              padding: '12px 14px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: 10,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Yüzey Çekimi (log g)
-              </span>
-              <span style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: 'white',
-                fontFamily: 'monospace'
-              }}>
-                {catalogInfo.stellar.logg.toFixed(2)}
-              </span>
-            </div>
+            <DataRow
+              label="Yüzey Çekimi (log g)"
+              value={catalogInfo.stellar.logg.toFixed(2)}
+            />
           )}
           
           {catalogInfo.stellar.metallicity !== undefined && (
-            <div style={{
-              padding: '12px 14px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: 10,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Metallik [Fe/H]
-              </span>
-              <span style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: 'white',
-                fontFamily: 'monospace'
-              }}>
-                {catalogInfo.stellar.metallicity >= 0 ? '+' : ''}{catalogInfo.stellar.metallicity.toFixed(2)}
-              </span>
-            </div>
+            <DataRow
+              label="Metallik [Fe/H]"
+              value={`${catalogInfo.stellar.metallicity >= 0 ? '+' : ''}${catalogInfo.stellar.metallicity.toFixed(2)}`}
+            />
           )}
         </div>
       </div>
@@ -243,122 +159,199 @@ export default function CatalogPanel({ catalogInfo, isLoading }: Props) {
             gap: 10
           }}>
             {catalogInfo.planetary.radius && (
-              <div style={{
-                padding: '12px 14px',
-                background: 'rgba(147, 51, 234, 0.1)',
-                border: '1px solid rgba(147, 51, 234, 0.3)',
-                borderRadius: 10,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Yarıçap (R<sub>⊕</sub>)
-                </span>
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: 'rgb(196, 181, 253)',
-                  fontFamily: 'monospace'
-                }}>
-                  {catalogInfo.planetary.radius.toFixed(2)} R<sub>⊕</sub>
-                </span>
-              </div>
+              <DataRow
+                label="Yarıçap (R⊕)"
+                value={`${catalogInfo.planetary.radius.toFixed(2)} R⊕`}
+                bgColor="rgba(147, 51, 234, 0.1)"
+                borderColor="rgba(147, 51, 234, 0.3)"
+                valueColor="rgb(196, 181, 253)"
+              />
             )}
             
             {catalogInfo.planetary.period && (
-              <div style={{
-                padding: '12px 14px',
-                background: 'rgba(147, 51, 234, 0.1)',
-                border: '1px solid rgba(147, 51, 234, 0.3)',
-                borderRadius: 10,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Yörünge Periyodu
-                </span>
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: 'rgb(196, 181, 253)',
-                  fontFamily: 'monospace'
-                }}>
-                  {catalogInfo.planetary.period.toFixed(4)} gün
-                </span>
-              </div>
+              <DataRow
+                label="Yörünge Periyodu"
+                value={`${catalogInfo.planetary.period.toFixed(4)} gün`}
+                bgColor="rgba(147, 51, 234, 0.1)"
+                borderColor="rgba(147, 51, 234, 0.3)"
+                valueColor="rgb(196, 181, 253)"
+              />
             )}
             
             {catalogInfo.planetary.semi_major_axis && (
-              <div style={{
-                padding: '12px 14px',
-                background: 'rgba(147, 51, 234, 0.1)',
-                border: '1px solid rgba(147, 51, 234, 0.3)',
-                borderRadius: 10,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Yarı Büyük Eksen
-                </span>
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: 'rgb(196, 181, 253)',
-                  fontFamily: 'monospace'
-                }}>
-                  {catalogInfo.planetary.semi_major_axis.toFixed(4)} AU
-                </span>
-              </div>
+              <DataRow
+                label="Yarı Büyük Eksen"
+                value={`${catalogInfo.planetary.semi_major_axis.toFixed(4)} AU`}
+                bgColor="rgba(147, 51, 234, 0.1)"
+                borderColor="rgba(147, 51, 234, 0.3)"
+                valueColor="rgb(196, 181, 253)"
+              />
             )}
             
             {catalogInfo.planetary.equilibrium_temp && (
+              <DataRow
+                label="Denge Sıcaklığı"
+                value={`${catalogInfo.planetary.equilibrium_temp.toFixed(0)} K`}
+                bgColor="rgba(147, 51, 234, 0.1)"
+                borderColor="rgba(147, 51, 234, 0.3)"
+                valueColor="rgb(196, 181, 253)"
+              />
+            )}
+            
+            {catalogInfo.planetary.insolation && (
+              <DataRow
+                label="Işınım (Dünya'ya göre)"
+                value={`${catalogInfo.planetary.insolation.toFixed(2)}× S⊕`}
+                bgColor="rgba(147, 51, 234, 0.1)"
+                borderColor="rgba(147, 51, 234, 0.3)"
+                valueColor="rgb(196, 181, 253)"
+              />
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Transit Parameters (from KOI data) */}
+      {koiData && (
+        <div>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'rgba(255, 255, 255, 0.5)',
+            marginBottom: 12,
+            letterSpacing: 1
+          }}>
+            🌗 TRANSİT PARAMETRELERİ
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: 10
+          }}>
+            {koiData.koi_duration && (
+              <DataRow
+                label="Transit Süresi"
+                value={`${koiData.koi_duration.toFixed(2)} saat`}
+                error={koiData.koi_duration_err1 ? `±${koiData.koi_duration_err1.toFixed(2)}` : undefined}
+              />
+            )}
+            
+            {koiData.koi_depth && (
+              <DataRow
+                label="Transit Derinliği"
+                value={`${koiData.koi_depth.toFixed(0)} ppm`}
+                error={koiData.koi_depth_err1 ? `±${koiData.koi_depth_err1.toFixed(0)}` : undefined}
+              />
+            )}
+            
+            {koiData.koi_ror && (
+              <DataRow
+                label="Yarıçap Oranı (Rp/R★)"
+                value={koiData.koi_ror.toFixed(4)}
+                error={koiData.koi_ror_err1 ? `±${koiData.koi_ror_err1.toFixed(4)}` : undefined}
+              />
+            )}
+            
+            {koiData.koi_dor && (
+              <DataRow
+                label="a/R★ (Ölçeklendirilmiş)"
+                value={koiData.koi_dor.toFixed(2)}
+                error={koiData.koi_dor_err1 ? `±${koiData.koi_dor_err1.toFixed(2)}` : undefined}
+              />
+            )}
+            
+            {koiData.koi_impact !== null && koiData.koi_impact !== undefined && (
+              <DataRow
+                label="İmpakt Parametresi (b)"
+                value={koiData.koi_impact.toFixed(3)}
+                error={koiData.koi_impact_err1 ? `±${koiData.koi_impact_err1.toFixed(3)}` : undefined}
+              />
+            )}
+            
+            {koiData.koi_model_snr && (
+              <DataRow
+                label="Sinyal-Gürültü Oranı"
+                value={koiData.koi_model_snr.toFixed(1)}
+                valueColor={koiData.koi_model_snr > 10 ? 'rgb(134, 239, 172)' : 'rgb(252, 211, 77)'}
+              />
+            )}
+            
+            {koiData.koi_num_transits && (
+              <DataRow
+                label="Transit Sayısı"
+                value={koiData.koi_num_transits.toString()}
+              />
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Validation Status */}
+      {koiData && (
+        <div>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'rgba(255, 255, 255, 0.5)',
+            marginBottom: 12,
+            letterSpacing: 1
+          }}>
+            ✅ DOĞRULAMA DURUMU
+          </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10
+          }}>
+            {koiData.koi_disposition && (
               <div style={{
                 padding: '12px 14px',
-                background: 'rgba(147, 51, 234, 0.1)',
-                border: '1px solid rgba(147, 51, 234, 0.3)',
+                background: getDispositionColor(koiData.koi_disposition).bg,
+                border: `1px solid ${getDispositionColor(koiData.koi_disposition).border}`,
                 borderRadius: 10,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
                 <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Denge Sıcaklığı
+                  Disposition
                 </span>
                 <span style={{
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: 700,
-                  color: 'rgb(196, 181, 253)',
+                  color: getDispositionColor(koiData.koi_disposition).text,
                   fontFamily: 'monospace'
                 }}>
-                  {catalogInfo.planetary.equilibrium_temp.toFixed(0)} K
+                  {koiData.koi_disposition}
                 </span>
               </div>
             )}
             
-            {catalogInfo.planetary.insolation && (
+            {koiData.koi_score !== null && koiData.koi_score !== undefined && (
+              <DataRow
+                label="KOI Score"
+                value={koiData.koi_score.toFixed(3)}
+                valueColor={koiData.koi_score > 0.9 ? 'rgb(134, 239, 172)' : koiData.koi_score > 0.5 ? 'rgb(252, 211, 77)' : 'rgb(248, 113, 113)'}
+              />
+            )}
+            
+            {(koiData.koi_fpflag_nt || koiData.koi_fpflag_ss || koiData.koi_fpflag_co || koiData.koi_fpflag_ec) && (
               <div style={{
-                padding: '12px 14px',
-                background: 'rgba(147, 51, 234, 0.1)',
-                border: '1px solid rgba(147, 51, 234, 0.3)',
-                borderRadius: 10,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
+                padding: '10px 12px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 8,
+                fontSize: 11
               }}>
-                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Işınım (Dünya'ya göre)
-                </span>
-                <span style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: 'rgb(196, 181, 253)',
-                  fontFamily: 'monospace'
-                }}>
-                  {catalogInfo.planetary.insolation.toFixed(2)}× S<sub>⊕</sub>
-                </span>
+                <div style={{ color: 'rgb(248, 180, 180)', fontWeight: 600, marginBottom: 6 }}>
+                  False Positive Flags:
+                </div>
+                <div style={{ color: 'rgba(255, 255, 255, 0.6)', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {koiData.koi_fpflag_nt === 1 && <span>• Not Transit-Like</span>}
+                  {koiData.koi_fpflag_ss === 1 && <span>• Stellar Eclipse</span>}
+                  {koiData.koi_fpflag_co === 1 && <span>• Centroid Offset</span>}
+                  {koiData.koi_fpflag_ec === 1 && <span>• Ephemeris Match</span>}
+                </div>
               </div>
             )}
           </div>
@@ -416,5 +409,89 @@ export default function CatalogPanel({ catalogInfo, isLoading }: Props) {
       </div>
     </div>
   )
+}
+
+// Helper component for data rows
+function DataRow({ 
+  label, 
+  value, 
+  error,
+  bgColor = 'rgba(0, 0, 0, 0.3)',
+  borderColor = 'rgba(255, 255, 255, 0.1)',
+  valueColor = 'white'
+}: { 
+  label: string
+  value: string
+  error?: string
+  bgColor?: string
+  borderColor?: string
+  valueColor?: string
+}) {
+  return (
+    <div style={{
+      padding: '12px 14px',
+      background: bgColor,
+      border: `1px solid ${borderColor}`,
+      borderRadius: 10,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }}>
+      <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+        {label}
+      </span>
+      <span style={{
+        fontSize: 14,
+        fontWeight: 700,
+        color: valueColor,
+        fontFamily: 'monospace',
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 6
+      }}>
+        {value}
+        {error && (
+          <span style={{ 
+            fontSize: 10, 
+            opacity: 0.6, 
+            fontWeight: 400 
+          }}>
+            {error}
+          </span>
+        )}
+      </span>
+    </div>
+  )
+}
+
+// Get color scheme based on disposition
+function getDispositionColor(disposition: string) {
+  switch (disposition.toUpperCase()) {
+    case 'CONFIRMED':
+      return {
+        bg: 'rgba(34, 197, 94, 0.1)',
+        border: 'rgba(34, 197, 94, 0.4)',
+        text: 'rgb(134, 239, 172)'
+      }
+    case 'FALSE POSITIVE':
+    case 'FALSE_POSITIVE':
+      return {
+        bg: 'rgba(239, 68, 68, 0.1)',
+        border: 'rgba(239, 68, 68, 0.4)',
+        text: 'rgb(248, 113, 113)'
+      }
+    case 'CANDIDATE':
+      return {
+        bg: 'rgba(234, 179, 8, 0.1)',
+        border: 'rgba(234, 179, 8, 0.4)',
+        text: 'rgb(252, 211, 77)'
+      }
+    default:
+      return {
+        bg: 'rgba(147, 51, 234, 0.1)',
+        border: 'rgba(147, 51, 234, 0.3)',
+        text: 'rgb(196, 181, 253)'
+      }
+  }
 }
 
