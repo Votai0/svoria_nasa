@@ -4,9 +4,11 @@ import type { TimeControl } from '../types'
 type Props = {
   timeControl: TimeControl
   setTimeControl: React.Dispatch<React.SetStateAction<TimeControl>>
+  isVisible: boolean
+  onToggle: () => void
 }
 
-export default function TimeSlider({ timeControl, setTimeControl }: Props) {
+export default function TimeSlider({ timeControl, setTimeControl, isVisible, onToggle }: Props) {
   // 365.25 gün (6 saat ekstra her yıl)
   const totalHoursInYear = 365.25 * 24
   const currentHour = (timeControl.currentTime * 24) % totalHoursInYear
@@ -117,22 +119,54 @@ export default function TimeSlider({ timeControl, setTimeControl }: Props) {
   }
 
   return (
-    <div style={{
-      position: 'absolute',
-      bottom: 262, // SpeedControlPanel'in üstünde
-      left: 16,
-      zIndex: 100,
-      background: 'rgba(15, 15, 30, 0.92)',
-      backdropFilter: 'blur(24px)',
-      borderRadius: 12,
-      padding: '14px 16px 12px',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-      width: 'min(320px, calc(100vw - 580px))',
-      minWidth: 260,
-      border: '1px solid rgba(255, 255, 255, 0.12)',
-      maxHeight: 'calc(100vh - 280px)',
-      overflowY: 'auto'
-    }}>
+    <>
+      {/* Toggle Button */}
+      <button
+        onClick={onToggle}
+        style={{
+          position: 'absolute',
+          bottom: 262,
+          left: isVisible ? 'min(336px, calc(100vw - 564px))' : 16,
+          zIndex: 101,
+          background: 'rgba(15, 15, 30, 0.92)',
+          backdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 12,
+          width: 36,
+          height: 36,
+          color: 'white',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 16,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+        }}
+        title={isVisible ? 'Zaman kontrolünü gizle' : 'Zaman kontrolünü göster'}
+      >
+        {isVisible ? '×' : '📅'}
+      </button>
+      
+      <div style={{
+        position: 'absolute',
+        bottom: 262, // SpeedControlPanel'in üstünde
+        left: isVisible ? 16 : -360,
+        zIndex: 100,
+        background: 'rgba(15, 15, 30, 0.92)',
+        backdropFilter: 'blur(24px)',
+        borderRadius: 12,
+        padding: '14px 16px 12px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+        width: 'min(320px, calc(100vw - 580px))',
+        minWidth: 260,
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        maxHeight: 'calc(100vh - 280px)',
+        overflowY: 'auto',
+        transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: isVisible ? 1 : 0,
+        pointerEvents: isVisible ? 'auto' : 'none'
+      }}>
       {/* Yıl Seçici */}
       <div style={{
         display: 'flex',
@@ -372,6 +406,7 @@ export default function TimeSlider({ timeControl, setTimeControl }: Props) {
         }
       `}</style>
     </div>
+    </>
   )
 }
 

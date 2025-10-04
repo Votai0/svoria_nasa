@@ -1,5 +1,4 @@
 import type { ExoplanetTarget } from '../types/exoplanet'
-import { DEMO_TARGETS } from '../services/exoplanetAPI'
 
 export type URLParams = {
   target?: string
@@ -17,8 +16,8 @@ export function parseURLParams(): URLParams {
   }
 }
 
-export function findTargetById(targetId: string): ExoplanetTarget | null {
-  return DEMO_TARGETS.find(t => t.id === targetId) || null
+export function findTargetById(targetId: string, targets: ExoplanetTarget[]): ExoplanetTarget | null {
+  return targets.find((t: ExoplanetTarget) => t.id === targetId) || null
 }
 
 export function updateURLParams(params: URLParams) {

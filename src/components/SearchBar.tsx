@@ -1,58 +1,75 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import CameraControlsImpl from 'camera-controls'
 import { planets } from '../constants/planets'
 import { flyToPlanet } from '../utils/navigation'
-import { searchExoplanetTargets, DEMO_TARGETS } from '../services/exoplanetAPI'
+import { calculateAllPlanetPositions } from '../utils/astronomy'
 import type { ExoplanetTarget } from '../types/exoplanet'
+import type { TimeControl } from '../types'
 
 export default function SearchBar({ 
   controlsRef,
   onTargetSelect,
-  onPlanetSelect
+  timeControl,
+  isVisible,
+  onToggle,
+  koiTargets = [],
+  koiLoading = false
 }: {
   controlsRef: React.RefObject<CameraControlsImpl | null>
   onTargetSelect?: (target: ExoplanetTarget) => void
-  onPlanetSelect?: (planetName: string) => void
+  timeControl: TimeControl
+  isVisible: boolean
+  onToggle: () => void
+  koiTargets?: ExoplanetTarget[]
+  koiLoading?: boolean
 }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchExpanded, setIsSearchExpanded] = useState(false)
-  const [exoplanetResults, setExoplanetResults] = useState<ExoplanetTarget[]>(DEMO_TARGETS)
+  const [exoplanetResults, setExoplanetResults] = useState<ExoplanetTarget[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [displayLimit, setDisplayLimit] = useState(50) // İlk gösterilecek KOI sayısı
+  
+  // Gezegen referans pozisyonlarını hesapla
+  const referencePositions = useMemo(() => {
+    return calculateAllPlanetPositions(timeControl.year, 0)
+  }, [timeControl.year])
 
   // Gezegen arama sonuçlarını filtrele
   const filteredPlanets = planets.filter(planet =>
     planet.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // Exoplanet arama - debounced
+  // Exoplanet filtreleme - Client-side (HIZLI!)
   useEffect(() => {
     if (searchQuery.length >= 2) {
       setIsSearching(true)
-      const timer = setTimeout(async () => {
-        try {
-          const results = await searchExoplanetTargets(searchQuery)
-          setExoplanetResults(results)
-        } catch (error) {
-          console.error('Arama hatası:', error)
-          setExoplanetResults([])
-        } finally {
-          setIsSearching(false)
-        }
-      }, 300)
+      const timer = setTimeout(() => {
+        // Mevcut koiTargets'ı filtrele - API çağrısı YOK!
+        const lowerQuery = searchQuery.toLowerCase()
+        const filtered = koiTargets.filter(target => {
+          return target.name.toLowerCase().includes(lowerQuery) ||
+                 target.id.toLowerCase().includes(lowerQuery)
+        })
+        setExoplanetResults(filtered.slice(0, 100)) // İlk 100 sonuç
+        setIsSearching(false)
+      }, 150) // Debounce azaltıldı
       
       return () => clearTimeout(timer)
-    } else if (searchQuery.length === 0) {
-      setExoplanetResults(DEMO_TARGETS)
+    } else if (searchQuery.length === 0 && koiTargets.length > 0 && isSearchExpanded) {
+      // Arama boşken ve panel açıkken yüklenmiş KOI'leri göster
+      setExoplanetResults(koiTargets.slice(0, displayLimit))
+    } else if (!isSearchExpanded) {
+      setExoplanetResults([])
     }
-  }, [searchQuery])
+  }, [searchQuery, koiTargets, displayLimit, isSearchExpanded])
 
-  const handlePlanetClick = (distance: number, planetName: string) => {
-    if (distance === 0) {
-      flyToPlanet(controlsRef, 5) // Güneş için
-    } else {
-      flyToPlanet(controlsRef, distance)
-    }
-    onPlanetSelect?.(planetName)
+  const handlePlanetClick = (planetName: string) => {
+    const planet = planets.find(p => p.name === planetName)
+    if (!planet) return
+    
+    const realPosition = referencePositions[planet.name]
+    flyToPlanet(controlsRef, planet, timeControl.currentTime, realPosition)
+    
     setSearchQuery('')
     setIsSearchExpanded(false)
   }
@@ -65,14 +82,45 @@ export default function SearchBar({
 
   return (
     <>
+      {/* Toggle Button - Her zaman görünür */}
+      <button
+        onClick={onToggle}
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: isVisible ? 'min(396px, calc(100vw - 564px))' : 16,
+          zIndex: 1001,
+          background: 'rgba(10, 10, 15, 0.88)',
+          backdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 12,
+          width: 36,
+          height: 36,
+          color: 'white',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 16,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+        }}
+        title={isVisible ? 'Aramayı gizle' : 'Aramayı göster'}
+      >
+        {isVisible ? '×' : '🔍'}
+      </button>
+      
       {/* Floating Search Bar */}
       <div style={{
         position: 'absolute',
         top: 16,
-        left: 16,
+        left: isVisible ? 16 : -400,
         zIndex: 1000,
         width: 'min(380px, calc(100vw - 580px))',
-        minWidth: 300
+        minWidth: 300,
+        transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: isVisible ? 1 : 0,
+        pointerEvents: isVisible ? 'auto' : 'none'
       }}>
         <div style={{ position: 'relative' }}>
           {/* Search Input */}
@@ -130,7 +178,7 @@ export default function SearchBar({
         </div>
 
         {/* Expanded Results Panel */}
-        {(isSearchExpanded || searchQuery) && (
+        {(isSearchExpanded || searchQuery || exoplanetResults.length > 0) && (
           <div style={{
             marginTop: 12,
             background: 'rgba(10, 10, 15, 0.9)',
@@ -143,7 +191,7 @@ export default function SearchBar({
             overflowY: 'auto',
             animation: 'slideDown 0.3s ease-out'
           }}>
-            {isSearching ? (
+            {(isSearching || koiLoading) ? (
               <div style={{ 
                 padding: 30, 
                 textAlign: 'center', 
@@ -158,7 +206,7 @@ export default function SearchBar({
                   margin: '0 auto 12px',
                   animation: 'spin 1s linear infinite'
                 }} />
-                Aranıyor...
+                {koiLoading ? 'KOI Verileri Yükleniyor...' : 'Aranıyor...'}
               </div>
             ) : (
               <>
@@ -177,7 +225,7 @@ export default function SearchBar({
                       {filteredPlanets.map((planet) => (
                         <button
                           key={planet.name}
-                          onClick={() => handlePlanetClick(planet.distance, planet.name)}
+                          onClick={() => handlePlanetClick(planet.name)}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -226,12 +274,25 @@ export default function SearchBar({
                 {exoplanetResults.length > 0 && (
                   <div>
                     <div style={{ 
-                      fontSize: 12, 
-                      color: '#888', 
-                      marginBottom: 12,
-                      fontWeight: 600
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 12
                     }}>
-                      🔭 {searchQuery ? 'EXOPLANET ARAMALARI' : 'DEMO HEDEFLER'}
+                      <div style={{ 
+                        fontSize: 12, 
+                        color: '#888', 
+                        fontWeight: 600
+                      }}>
+                        🔭 KEPLER KOI EXOPLANETLER
+                      </div>
+                      <div style={{ 
+                        fontSize: 11, 
+                        color: '#666',
+                        fontWeight: 600
+                      }}>
+                        {searchQuery ? exoplanetResults.length + ' sonuç' : `${exoplanetResults.length} / ${koiTargets.length}`}
+                      </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {exoplanetResults.map((target) => (
@@ -300,6 +361,34 @@ export default function SearchBar({
                         </button>
                       ))}
                     </div>
+                    
+                    {/* Daha Fazla Yükle Butonu */}
+                    {!searchQuery && koiTargets.length > displayLimit && exoplanetResults.length < koiTargets.length && (
+                      <button
+                        onClick={() => setDisplayLimit(prev => prev + 50)}
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          marginTop: 12,
+                          background: 'rgba(147, 51, 234, 0.15)',
+                          border: '1px solid rgba(147, 51, 234, 0.4)',
+                          borderRadius: 10,
+                          color: 'rgb(196, 181, 253)',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(147, 51, 234, 0.25)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(147, 51, 234, 0.15)'
+                        }}
+                      >
+                        ⬇️ Daha Fazla Yükle ({koiTargets.length - displayLimit} kaldı)
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -321,11 +410,12 @@ export default function SearchBar({
       </div>
 
       {/* Close overlay when clicking outside */}
-      {(isSearchExpanded || searchQuery) && (
+      {(isSearchExpanded || searchQuery || exoplanetResults.length > 0) && (
         <div
           onClick={() => {
             setIsSearchExpanded(false)
             setSearchQuery('')
+            setDisplayLimit(50)
           }}
           style={{
             position: 'fixed',

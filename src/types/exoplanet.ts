@@ -116,3 +116,55 @@ export type DemoTarget = {
   expectedResult: 'planet' | 'false-positive' | 'uncertain'
 }
 
+// Kepler KOI API Types
+export type KeplerDisposition = 'CONFIRMED' | 'FALSE_POSITIVE' | 'CANDIDATE'
+
+export type KOIPlanet = {
+  kepid: number
+  kepoi_name?: string
+  kepler_name?: string
+  koi_disposition?: string
+  koi_pdisposition?: KeplerDisposition // ML predicted disposition
+  koi_score?: number
+  koi_period?: number
+  koi_time0bk?: number
+  koi_impact?: number
+  koi_duration?: number
+  koi_depth?: number
+  koi_prad?: number // Planet radius in Earth radii
+  koi_teq?: number // Equilibrium temperature
+  koi_insol?: number // Insolation flux
+  koi_steff?: number // Stellar effective temperature
+  koi_slogg?: number // Stellar surface gravity
+  koi_srad?: number // Stellar radius in solar radii
+  ra?: number
+  dec?: number
+  prediction_probability?: number
+  probabilities?: {
+    CONFIRMED: number
+    FALSE_POSITIVE: number
+    CANDIDATE: number
+  }
+  actual_disposition?: string // For comparison
+  [key: string]: any // Allow additional properties
+}
+
+export type ModelStatus = {
+  model_loaded: boolean
+  model_available: boolean
+  features_count: number
+  classes: string[]
+}
+
+export type KOIStatistics = {
+  total_count: number
+  predicted_confirmed: number
+  predicted_false_positive: number
+  predicted_candidate: number
+  accuracy?: number
+  precision?: number
+  recall?: number
+  f1_score?: number
+  [key: string]: any
+}
+

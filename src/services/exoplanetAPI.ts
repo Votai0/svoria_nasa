@@ -5,65 +5,145 @@ import type {
   ModelPrediction,
   CatalogInfo,
   BLSResult,
-  PhaseFoldedData
+  PhaseFoldedData,
+  KOIPlanet,
+  ModelStatus,
+  KOIStatistics,
+  KeplerDisposition
 } from '../types/exoplanet'
 
-// Demo veriler için mock hedefler
-export const DEMO_TARGETS: ExoplanetTarget[] = [
-  {
-    id: 'TIC307210830',
-    name: 'TOI 700 d',
-    ra: 103.087,
-    dec: -65.574,
-    type: 'TIC',
-    confirmed: true
-  },
-  {
-    id: 'TIC441462736',
-    name: 'AU Mic b',
-    ra: 312.958,
-    dec: -31.341,
-    type: 'TIC',
-    confirmed: true
-  },
-  {
-    id: 'KOI-7016',
-    name: 'KOI-7016.01',
-    ra: 291.561,
-    dec: 48.141,
-    type: 'KOI',
-    confirmed: false
-  },
-  {
-    id: 'EPIC212521166',
-    name: 'K2-18 b',
-    ra: 165.483,
-    dec: 7.588,
-    type: 'EPIC',
-    confirmed: true
-  },
-  {
-    id: 'TIC259168516',
-    name: 'TOI 178',
-    ra: 29.421,
-    dec: -34.986,
-    type: 'TIC',
-    confirmed: true
-  }
-]
+// ============================================================================
+// KEPLER KOI API CONFIGURATION
+// ============================================================================
+// Use /api for proxy in development (see vite.config.ts)
+// In production, set VITE_KEPLER_API_URL to your API domain
+const KEPLER_API_BASE_URL = import.meta.env.VITE_KEPLER_API_URL || '/api'
 
-// Exoplanet hedef arama (autosuggest için)
-export async function searchExoplanetTargets(query: string): Promise<ExoplanetTarget[]> {
-  // Gerçek uygulamada ExoFOP TESS, NASA Exoplanet Archive API'leri kullanılır
-  // Şimdilik demo verilerden filtrele
-  await new Promise(resolve => setTimeout(resolve, 300)) // Simüle gecikme
+// ============================================================================
+// KEPLER KOI API FUNCTIONS (Real Data)
+// ============================================================================
+
+/**
+ * Get list of KOI planets with ML predictions
+ */
+export async function fetchKOIPlanets(params?: {
+  skip?: number
+  limit?: number
+  disposition?: KeplerDisposition
+  only_confirmed?: boolean
+  include_actual?: boolean
+  include_probabilities?: boolean
+}): Promise<KOIPlanet[]> {
+  const queryParams = new URLSearchParams()
+  if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString())
+  if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString())
+  if (params?.disposition) queryParams.append('disposition', params.disposition)
+  if (params?.only_confirmed !== undefined) queryParams.append('only_confirmed', params.only_confirmed.toString())
+  if (params?.include_actual !== undefined) queryParams.append('include_actual', params.include_actual.toString())
+  if (params?.include_probabilities !== undefined) queryParams.append('include_probabilities', params.include_probabilities.toString())
   
-  const lowerQuery = query.toLowerCase()
-  return DEMO_TARGETS.filter(target => 
-    target.id.toLowerCase().includes(lowerQuery) ||
-    target.name.toLowerCase().includes(lowerQuery)
-  )
+  const url = `${KEPLER_API_BASE_URL}/planets?${queryParams.toString()}`
+  const response = await fetch(url)
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch KOI planets: ${response.statusText}`)
+  }
+  
+  return response.json()
 }
+
+/**
+ * Get a single KOI planet by Kepler ID
+ */
+export async function fetchKOIPlanetById(
+  kepid: number,
+  include_actual = false,
+  include_probabilities = false
+): Promise<KOIPlanet> {
+  const queryParams = new URLSearchParams()
+  queryParams.append('include_actual', include_actual.toString())
+  queryParams.append('include_probabilities', include_probabilities.toString())
+  
+  const url = `${KEPLER_API_BASE_URL}/planets/${kepid}?${queryParams.toString()}`
+  const response = await fetch(url)
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch KOI planet ${kepid}: ${response.statusText}`)
+  }
+  
+  return response.json()
+}
+
+/**
+ * Get ML model status
+ */
+export async function getModelStatus(): Promise<ModelStatus> {
+  const response = await fetch(`${KEPLER_API_BASE_URL}/model/status`)
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch model status: ${response.statusText}`)
+  }
+  
+  return response.json()
+}
+
+/**
+ * Get dataset and model statistics
+ */
+export async function getKOIStatistics(): Promise<KOIStatistics> {
+  const response = await fetch(`${KEPLER_API_BASE_URL}/stats`)
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch statistics: ${response.statusText}`)
+  }
+  
+  return response.json()
+}
+
+/**
+ * Convert KOI planet to ExoplanetTarget format for compatibility
+ */
+export function koiToExoplanetTarget(koi: KOIPlanet): ExoplanetTarget {
+  return {
+    id: `KOI-${koi.kepid}`,
+    name: koi.kepler_name || koi.kepoi_name || `KOI-${koi.kepid}`,
+    ra: koi.ra || 0,
+    dec: koi.dec || 0,
+    type: 'KOI',
+    confirmed: koi.koi_pdisposition === 'CONFIRMED'
+  }
+}
+
+/**
+ * Search KOI planets by name or ID with real API data
+ */
+export async function searchKOIPlanets(query: string): Promise<ExoplanetTarget[]> {
+  try {
+    // Fetch all planets (set to 1000 max, adjust based on API)
+    const planets = await fetchKOIPlanets({ limit: 1000, include_probabilities: true })
+    
+    const lowerQuery = query.toLowerCase()
+    const filtered = planets.filter(planet => {
+      const kepid = planet.kepid.toString()
+      const koiName = planet.kepoi_name?.toLowerCase() || ''
+      const keplerName = planet.kepler_name?.toLowerCase() || ''
+      
+      return kepid.includes(lowerQuery) || 
+             koiName.includes(lowerQuery) || 
+             keplerName.includes(lowerQuery)
+    })
+    
+    return filtered.slice(0, 20).map(koiToExoplanetTarget)
+  } catch (error) {
+    console.error('Failed to search KOI planets:', error)
+    return []
+  }
+}
+
+// ============================================================================
+// LEGACY MOCK DATA (Kept for backward compatibility with other components)
+// ============================================================================
+// Note: SearchBar now uses searchKOIPlanets() with real API data
 
 // Light curve verisi çek
 export async function fetchLightCurve(
@@ -280,6 +360,31 @@ export async function predictPlanetCandidate(
   }
 }
 
+/**
+ * Convert KOI planet data to CatalogInfo
+ */
+export function koiToCatalogInfo(koi: KOIPlanet): CatalogInfo {
+  return {
+    targetId: koi.kepler_name || koi.kepoi_name || `KOI-${koi.kepid}`,
+    stellar: {
+      teff: koi.koi_steff || koi.st_teff,
+      radius: koi.koi_srad || koi.st_rad,
+      mass: koi.koi_smass || koi.st_mass,
+      logg: koi.koi_slogg || koi.st_logg,
+      metallicity: koi.koi_smet || koi.st_met
+    },
+    planetary: {
+      radius: koi.koi_prad, // Earth radii
+      period: koi.koi_period, // days
+      semi_major_axis: koi.koi_sma, // AU
+      equilibrium_temp: koi.koi_teq, // K
+      insolation: koi.koi_insol // Earth flux
+    },
+    source: 'Kepler Objects of Interest (KOI) - NASA Exoplanet Archive',
+    sourceUrl: `https://exoplanetarchive.ipac.caltech.edu/cgi-bin/DisplayOverview/nph-DisplayOverview?objname=KOI-${koi.kepid}`
+  }
+}
+
 // Katalog bilgilerini çek
 export async function fetchCatalogInfo(targetId: string): Promise<CatalogInfo> {
   // Gerçek uygulamada NASA Exoplanet Archive TAP service
@@ -304,6 +409,19 @@ export async function fetchCatalogInfo(targetId: string): Promise<CatalogInfo> {
     },
     source: 'NASA Exoplanet Archive',
     sourceUrl: 'https://exoplanetarchive.ipac.caltech.edu/'
+  }
+}
+
+/**
+ * Fetch catalog info from KOI data
+ */
+export async function fetchCatalogInfoFromKOI(kepid: number): Promise<CatalogInfo> {
+  try {
+    const koi = await fetchKOIPlanetById(kepid, false, false)
+    return koiToCatalogInfo(koi)
+  } catch (error) {
+    console.error('Failed to fetch KOI catalog info:', error)
+    throw error
   }
 }
 

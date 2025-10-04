@@ -79,10 +79,11 @@ NASA Space Apps Challenge projesi için geliştirilmiş, interaktif exoplanet tr
 
 ### Veri Kaynakları
 
+- **Kepler KOI Data**: Real ML-powered classification API with XGBoost predictions
 - **TESS Light Curves**: MAST Archive (simüle edilmiş)
 - **Catalog Data**: NASA Exoplanet Archive TAP Service
 - **BLS Algorithm**: Astropy/lightkurve benzeri implementasyon
-- **AI Model**: Mock ML classifier (gerçek: TensorFlow.js ile eğitilmiş model)
+- **AI Model**: Kepler KOI Classification API + Mock ML classifier (gerçek: TensorFlow.js ile eğitilmiş model)
 
 ### Performans
 
@@ -110,7 +111,27 @@ SNR: 12.45
 AI Probability: 87.3% Planet Candidate
 ```
 
-## 🔗 API Endpoints (Gerçek Implementasyon İçin)
+## 🔗 API Endpoints
+
+### Kepler KOI Classification API (LIVE)
+
+```typescript
+// List KOI planets with ML predictions
+GET /planets?limit=100&disposition=CONFIRMED&include_probabilities=true
+
+// Get single KOI planet
+GET /planets/{kepid}?include_actual=true&include_probabilities=true
+
+// Model status
+GET /model/status
+
+// Dataset statistics
+GET /stats
+```
+
+**Configuration**: Set `VITE_KEPLER_API_URL` in `.env` file (see [KEPLER_API_INTEGRATION.md](./KEPLER_API_INTEGRATION.md))
+
+### Other Data Sources (For Future Implementation)
 
 ```typescript
 // MAST Archive
@@ -127,8 +148,35 @@ GET https://exofop.ipac.caltech.edu/tess/download_toi.php?id={TOI_ID}
 
 - [TESS Mission](https://tess.mit.edu/)
 - [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/)
+- [Kepler Mission](https://www.nasa.gov/mission_pages/kepler/main/index.html)
 - [Lightkurve Documentation](https://docs.lightkurve.org/)
 - [BLS Algorithm Paper](https://ui.adsabs.harvard.edu/abs/2002A%26A...391..369K)
+- [XGBoost Documentation](https://xgboost.readthedocs.io/)
+
+## 🔧 Setup & Configuration
+
+### Quick Start
+```bash
+# Install dependencies
+npm install
+
+# Copy environment template
+cp .env.example .env
+
+# Update .env with your Kepler API URL
+# VITE_KEPLER_API_URL=http://localhost:8000
+
+# Start development server
+npm run dev
+```
+
+### Using Kepler KOI API
+
+See [KEPLER_API_INTEGRATION.md](./KEPLER_API_INTEGRATION.md) for detailed integration guide including:
+- API configuration
+- Custom React hooks (`useKOIPlanets`, `useKOIStatistics`)
+- Component examples (`KOIExplorer`, `KOIInfoPanel`)
+- Type definitions and error handling
 
 ## 🎓 Jüri Notları
 

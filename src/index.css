@@ -20,3 +20,13 @@ button + button {
 button:hover {
   filter: brightness(1.1);
 }
+
+/* Spin animation for loading indicators */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

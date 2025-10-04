@@ -3,9 +3,11 @@ import type { TimeControl } from '../types'
 type Props = {
   timeControl: TimeControl
   setTimeControl: React.Dispatch<React.SetStateAction<TimeControl>>
+  isVisible: boolean
+  onToggle: () => void
 }
 
-export default function SpeedControlPanel({ timeControl, setTimeControl }: Props) {
+export default function SpeedControlPanel({ timeControl, setTimeControl, isVisible, onToggle }: Props) {
   const handleSpeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(0.01, parseFloat(e.target.value)) // Minimum 0.01x
     setTimeControl(prev => ({ ...prev, speed: value }))
@@ -16,20 +18,52 @@ export default function SpeedControlPanel({ timeControl, setTimeControl }: Props
   }
 
   return (
-    <div style={{
-      position: 'absolute',
-      bottom: 16,
-      left: 16,
-      zIndex: 100,
-      background: 'rgba(15, 15, 30, 0.92)',
-      backdropFilter: 'blur(24px)',
-      borderRadius: 12,
-      padding: '12px 16px',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-      width: 'min(320px, calc(100vw - 580px))',
-      minWidth: 260,
-      border: '1px solid rgba(255, 255, 255, 0.12)'
-    }}>
+    <>
+      {/* Toggle Button */}
+      <button
+        onClick={onToggle}
+        style={{
+          position: 'absolute',
+          bottom: 16,
+          left: isVisible ? 'min(336px, calc(100vw - 564px))' : 16,
+          zIndex: 101,
+          background: 'rgba(15, 15, 30, 0.92)',
+          backdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 12,
+          width: 36,
+          height: 36,
+          color: 'white',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 16,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+        }}
+        title={isVisible ? 'Hız kontrolünü gizle' : 'Hız kontrolünü göster'}
+      >
+        {isVisible ? '×' : '⚡'}
+      </button>
+      
+      <div style={{
+        position: 'absolute',
+        bottom: 16,
+        left: isVisible ? 16 : -360,
+        zIndex: 100,
+        background: 'rgba(15, 15, 30, 0.92)',
+        backdropFilter: 'blur(24px)',
+        borderRadius: 12,
+        padding: '12px 16px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+        width: 'min(320px, calc(100vw - 580px))',
+        minWidth: 260,
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: isVisible ? 1 : 0,
+        pointerEvents: isVisible ? 'auto' : 'none'
+      }}>
       {/* Başlık */}
       <div style={{
         display: 'flex',
@@ -243,6 +277,7 @@ export default function SpeedControlPanel({ timeControl, setTimeControl }: Props
         }
       `}</style>
     </div>
+    </>
   )
 }
 
