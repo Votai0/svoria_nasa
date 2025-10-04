@@ -8,6 +8,7 @@ import type {
   ModelPrediction,
   CatalogInfo 
 } from '../types/exoplanet'
+import type { Planet } from '../types'
 import LightCurvePanel from './LightCurvePanel'
 import PeriodogramPanel from './PeriodogramPanel'
 import PhaseFoldedPanel from './PhaseFoldedPanel'
@@ -25,9 +26,10 @@ type AnalysisTab = 'lightcurve' | 'periodogram' | 'folded' | 'model' | 'catalog'
 
 type Props = {
   selectedTarget: ExoplanetTarget | null
+  selectedPlanet?: Planet | null
 }
 
-export default function AnalysisPanel({ selectedTarget }: Props) {
+export default function AnalysisPanel({ selectedTarget, selectedPlanet }: Props) {
   const [activeTab, setActiveTab] = useState<AnalysisTab>('lightcurve')
   const [dataType, setDataType] = useState<'SAP' | 'PDCSAP'>('PDCSAP')
   
@@ -233,7 +235,7 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
               disabled={tab.disabled}
               title={tab.label}
               style={{
-                padding: '10px 8px',
+                padding: '8px 4px',
                 background: activeTab === tab.id 
                   ? 'rgba(147, 151, 234, 0.15)' 
                   : 'transparent',
@@ -247,14 +249,24 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
                   : tab.disabled 
                     ? 'rgba(255, 255, 255, 0.3)' 
                     : 'rgba(255, 255, 255, 0.6)',
-                fontSize: 20,
                 cursor: tab.disabled ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 textAlign: 'center',
-                opacity: tab.disabled ? 0.4 : 1
+                opacity: tab.disabled ? 0.4 : 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 4
               }}
             >
-              {tab.icon}
+              <span style={{ fontSize: 18 }}>{tab.icon}</span>
+              <span style={{ 
+                fontSize: 9, 
+                fontWeight: 600,
+                lineHeight: 1.1
+              }}>
+                {tab.label}
+              </span>
             </button>
           ))}
         </div>
@@ -325,7 +337,9 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
         overflow: 'hidden',
         position: 'relative'
       }}>
-        {!selectedTarget ? (
+        {selectedPlanet ? (
+          <PlanetInfoContent planet={selectedPlanet} />
+        ) : !selectedTarget ? (
           <div style={{
             height: '100%',
             textAlign: 'center',
@@ -343,7 +357,7 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
               margin: '0 auto',
               lineHeight: 1.5
             }}>
-              Select an exoplanet target to begin analysis
+              Bir exoplanet veya gezegen seçin
             </div>
           </div>
         ) : (
@@ -470,6 +484,185 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// Gezegen bilgi içeriği
+function PlanetInfoContent({ planet }: { planet: Planet }) {
+  const getPlanetDescription = (name: string): string => {
+    const descriptions: Record<string, string> = {
+      'Güneş': 'Güneş sistemimizin merkezindeki yıldız. 4.6 milyar yıllık ve hidrojen füzyonu ile enerji üretiyor.',
+      'Merkür': 'Güneş\'e en yakın gezegen. Gündüz sıcaklığı 430°C\'ye ulaşırken, gece -180°C\'ye düşüyor.',
+      'Venüs': 'Güneş sisteminin en sıcak gezegeni. Yoğun atmosferi sera etkisi oluşturarak 470°C\'ye çıkıyor.',
+      'Dünya': 'Bilinen tek yaşanabilir gezegen. %71\'i su ile kaplı ve koruyucu bir atmosfere sahip.',
+      'Mars': 'Kızıl gezegen. Demir oksit nedeniyle kırmızı renkli. Geçmişte sıvı su bulunduğu düşünülüyor.',
+      'Jüpiter': 'Güneş sisteminin en büyük gezegeni. Dev bir gaz gezegeni ve güçlü manyetik alana sahip.',
+      'Satürn': 'İhtişamlı halkaları ile ünlü. Halkalar buz ve kaya parçacıklarından oluşuyor.',
+      'Uranüs': 'Yanlamasına dönen ilginç bir gezegen. Mavi-yeşil rengi metan gazından kaynaklanıyor.',
+      'Neptün': 'Güneşten en uzak gezegen. 2,000 km/sa hıza ulaşan rüzgarları var.'
+    }
+    return descriptions[name] || 'Bu gök cismi hakkında detaylı bilgi mevcut değil.'
+  }
+
+  const formatOrbitalPeriod = (orbitSpeed: number): string => {
+    const BASE_SPEED = 0.01
+    const periodInYears = BASE_SPEED / orbitSpeed
+    
+    if (periodInYears < 1) {
+      const days = Math.round(periodInYears * 365.25)
+      return `${days} gün`
+    } else if (periodInYears < 2) {
+      return '1 yıl'
+    } else {
+      return `${periodInYears.toFixed(1)} yıl`
+    }
+  }
+
+  const formatRotationPeriod = (period: number): string => {
+    const absPeriod = Math.abs(period)
+    const isRetrograde = period < 0
+    
+    if (absPeriod < 1) {
+      const hours = Math.round(absPeriod * 24)
+      return `~${hours} saat${isRetrograde ? ' (ters yönde)' : ''}`
+    } else if (absPeriod === 1) {
+      return '1 gün'
+    } else {
+      return `${absPeriod.toFixed(1)} gün${isRetrograde ? ' (ters yönde)' : ''}`
+    }
+  }
+
+  return (
+    <div style={{
+      height: '100%',
+      overflowY: 'auto',
+      padding: '24px'
+    }}>
+      {/* Gezegen adı */}
+      <div style={{
+        fontSize: 28,
+        fontWeight: 700,
+        marginBottom: 16,
+        background: 'linear-gradient(135deg, #fff 0%, #a0a0ff 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent'
+      }}>
+        {planet.name}
+      </div>
+
+      {/* Açıklama */}
+      <p style={{
+        fontSize: 14,
+        lineHeight: 1.6,
+        color: 'rgba(255, 255, 255, 0.75)',
+        marginBottom: 24
+      }}>
+        {getPlanetDescription(planet.name)}
+      </p>
+
+      {/* Özellikler */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {planet.distance > 0 && (
+          <>
+            <InfoRow
+              label="Güneş'e Uzaklık"
+              value={`${planet.distance} AU`}
+              color="#FFD700"
+            />
+            <InfoRow
+              label="Yörünge Periyodu"
+              value={formatOrbitalPeriod(planet.orbitSpeed)}
+              color="#FFA500"
+            />
+          </>
+        )}
+
+        <InfoRow
+          label="Dönüş Periyodu"
+          value={formatRotationPeriod(planet.rotationPeriod)}
+          color="#87CEEB"
+        />
+
+        {planet.moons && planet.moons.length > 0 && (
+          <InfoRow
+            label="Uydu Sayısı"
+            value={`${planet.moons.length} uydu`}
+            color="#DDA0DD"
+          />
+        )}
+
+        {planet.hasRings && (
+          <InfoRow
+            label="Özel Özellik"
+            value="Halka sistemi"
+            color="#F0E68C"
+          />
+        )}
+      </div>
+
+      {/* Uydular */}
+      {planet.moons && planet.moons.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <h3 style={{
+            fontSize: 16,
+            fontWeight: 600,
+            marginBottom: 12,
+            color: 'rgba(255, 255, 255, 0.9)'
+          }}>
+            Uydular
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {planet.moons.map((moon, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '10px 14px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  borderLeft: '3px solid rgba(147, 151, 234, 0.5)'
+                }}
+              >
+                <span style={{ fontWeight: 600, color: '#fff' }}>{moon.name}</span>
+                {' • '}
+                <span>Yörünge: {formatOrbitalPeriod(moon.orbitSpeed)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Bilgi satırı
+function InfoRow({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '12px 14px',
+      background: 'rgba(255, 255, 255, 0.05)',
+      borderRadius: 8,
+      borderLeft: `3px solid ${color}`
+    }}>
+      <span style={{
+        fontSize: 13,
+        fontWeight: 500,
+        color: 'rgba(255, 255, 255, 0.7)'
+      }}>
+        {label}
+      </span>
+      <span style={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: '#fff'
+      }}>
+        {value}
+      </span>
     </div>
   )
 }

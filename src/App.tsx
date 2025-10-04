@@ -2,14 +2,12 @@ import { Suspense, useRef, useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
 import CameraControlsImpl from 'camera-controls'
-import type { TimeControl } from './types'
+import type { TimeControl, Planet } from './types'
 import type { ExoplanetTarget } from './types/exoplanet'
 import SpaceBackground from './components/SpaceBackground'
 import SolarSystem from './components/SolarSystem'
 import SearchBar from './components/SearchBar'
 import AnalysisPanel from './components/AnalysisPanel'
-import SharePanel from './components/SharePanel'
-import DemoTargetsBar from './components/DemoTargetsBar'
 import SpeedControlPanel from './components/SpeedControlPanel'
 import TimeSlider from './components/TimeSlider'
 import { parseURLParams, findTargetById, updateURLParams } from './utils/urlParams'
@@ -31,6 +29,9 @@ export default function App() {
   // Seçili exoplanet hedefi
   const [selectedTarget, setSelectedTarget] = useState<ExoplanetTarget | null>(null)
   const [sector, setSector] = useState<number | undefined>(undefined)
+  
+  // Seçili gezegen
+  const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null)
   
   // URL parametrelerinden hedef yükle
   useEffect(() => {
@@ -94,7 +95,11 @@ export default function App() {
         {/* Uzay arka planı ve güneş sistemi */}
         <Suspense fallback={null}>
           <SpaceBackground />
-          <SolarSystem timeControl={timeControl} setTimeControl={setTimeControl} />
+          <SolarSystem 
+            timeControl={timeControl} 
+            setTimeControl={setTimeControl}
+            onPlanetClick={setSelectedPlanet}
+          />
         </Suspense>
       </Canvas>
 
@@ -120,22 +125,11 @@ export default function App() {
         </div>
       )} */}
       
-      {/* Sağ: Exoplanet analiz paneli */}
-      <AnalysisPanel selectedTarget={selectedTarget} />
-      
-      {/* Sağ alt: Paylaşım paneli (exoplanet modunda) */}
-      {selectedTarget && (
-        <SharePanel 
-          target={selectedTarget}
-          sector={sector}
-          modelVersion="v0.1"
-        />
-      )}
-      
-      {/* Demo hedefler (exoplanet modunda değilken) */}
-      {!selectedTarget && (
-        <DemoTargetsBar onSelectTarget={setSelectedTarget} />
-      )}
-    </div>
+      {/* Sağ: Analiz paneli (hem exoplanet hem gezegen bilgileri) */}
+      <AnalysisPanel 
+        selectedTarget={selectedTarget} 
+        selectedPlanet={selectedPlanet}
+      />
+    </div> 
   )
 }
