@@ -143,248 +143,238 @@ export default function LightCurvePanel({
   }
   
   return (
-    <div style={{ height: '100%', display: 'inline', flexDirection: 'column' }}>
-      {/* Toolbar */}
+    <div style={{ height: '100%', overflow: 'hidden' }}>
+      {/* Controls Section */}
       <div style={{
-        padding: '12px 16px',
-        background: 'rgba(0, 0, 0, 0.3)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        display: 'flex',
-        gap: 12,
-        alignItems: 'center',
-        flexWrap: 'wrap'
+        padding: '16px 20px',
+        background: '#202020',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
       }}>
-        {/* Data Type Toggle - Mükemmel hizalanmış butonlar */}
-        <div style={{ 
-          display: 'inline',
-          alignItems: 'center' // Parent div'de de hizalama
+        {/* Row 1: Data Type Selector */}
+        <div style={{
+          marginBottom: 12
         }}>
-          <button
-            onClick={() => onDataTypeChange('SAP')}
-            disabled={isLoading || !data}
-            style={{
-              display: 'inline',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: 12,
-              padding: 0, // Padding kaldırıldı, boyut sabit
-              background: selectedDataType === 'SAP' 
-                ? 'rgba(147, 51, 234, 0.8)' 
-                : 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: 8,
-              color: 'white',
-              fontSize: 11,
-              fontWeight: 600,
-              height: 32, // Sabit yükseklik (px olmadan - number)
-              width: 65, // Sabit genişlik
-              minHeight: 32, // Garanti
-              minWidth: 65,
-              cursor: isLoading || !data ? 'not-allowed' : 'pointer',
-              opacity: isLoading || !data ? 0.5 : 1,
-              boxSizing: 'border-box', // Border dahil hesaplama
-              flexShrink: 0 // Küçülmeyi engelle
-            }}
-          >
-            SAP
-          </button>
-          <button
-            onClick={() => onDataTypeChange('PDCSAP')}
-            disabled={isLoading || !data}
-            style={{
-              display: 'inline',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 0, // Padding kaldırıldı, boyut sabit
-              background: selectedDataType === 'PDCSAP' 
-                ? 'rgba(147, 51, 234, 0.8)' 
-                : 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: 8,
-              color: 'white',
-              fontSize: 11,
-              fontWeight: 600,
-              height: 32, // Aynı yükseklik
-              width: 85, // Sabit genişlik (daha uzun text için)
-              minHeight: 32, // Garanti
-              minWidth: 85,
-              cursor: isLoading || !data ? 'not-allowed' : 'pointer',
-              opacity: isLoading || !data ? 0.5 : 1,
-              boxSizing: 'border-box', // Border dahil hesaplama
-              flexShrink: 0 // Küçülmeyi engelle
-            }}
-          >
-            PDCSAP
-          </button>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 500,
+            color: 'rgba(255, 255, 255, 0.5)',
+            marginBottom: 8,
+            letterSpacing: 0.5
+          }}>
+            Data Type
+          </div>
+          <div>
+            <button
+              onClick={() => onDataTypeChange('SAP')}
+              disabled={isLoading || !data}
+              style={{
+                padding: '10px 20px',
+                background: selectedDataType === 'SAP' 
+                  ? 'rgba(147, 151, 234, 0.9)' 
+                  : 'rgba(255, 255, 255, 0.08)',
+                border: selectedDataType === 'SAP'
+                  ? '1px solid rgba(147, 151, 234, 0.6)'
+                  : '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '6px 0 0 6px',
+                color: selectedDataType === 'SAP' ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: isLoading || !data ? 'not-allowed' : 'pointer',
+                opacity: isLoading || !data ? 0.5 : 1,
+                transition: 'all 0.2s',
+                width: 80
+              }}
+            >
+              SAP
+            </button>
+            <button
+              onClick={() => onDataTypeChange('PDCSAP')}
+              disabled={isLoading || !data}
+              style={{
+                padding: '10px 20px',
+                background: selectedDataType === 'PDCSAP' 
+                  ? 'rgba(147, 151, 234, 0.9)' 
+                  : 'rgba(255, 255, 255, 0.08)',
+                border: selectedDataType === 'PDCSAP'
+                  ? '1px solid rgba(147, 151, 234, 0.6)'
+                  : '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '0 6px 6px 0',
+                borderLeft: 'none',
+                color: selectedDataType === 'PDCSAP' ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: isLoading || !data ? 'not-allowed' : 'pointer',
+                opacity: isLoading || !data ? 0.5 : 1,
+                transition: 'all 0.2s',
+                width: 100
+              }}
+            >
+              PDCSAP
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: Quality Flags */}
+        <div style={{
+          marginBottom: 12
+        }}>
+          <label style={{ 
+            cursor: data ? 'pointer' : 'not-allowed',
+            opacity: data ? 1 : 0.5
+          }}>
+            <input
+              type="checkbox"
+              checked={showQualityFlags}
+              onChange={(e) => setShowQualityFlags(e.target.checked)}
+              disabled={!data}
+              style={{ 
+                cursor: data ? 'pointer' : 'not-allowed',
+                width: 16,
+                height: 16,
+                marginRight: 8,
+                verticalAlign: 'middle'
+              }}
+            />
+            <span style={{ 
+              fontSize: 12,
+              color: 'rgba(255, 255, 255, 0.7)',
+              verticalAlign: 'middle'
+            }}>
+              Show quality flags
+            </span>
+          </label>
         </div>
         
-        {/* Quality Flags Toggle - Hizalanmış */}
-        <label style={{ 
-          display: 'inline', 
-          alignItems: 'center', 
-          verticalAlign: 'middle',
-           
-          cursor: 'pointer',
-          height: 32, // Butonlarla aynı yükseklik
-          margin: 0
-        }}>
-          <input
-            type="checkbox"
-            checked={showQualityFlags}
-            onChange={(e) => setShowQualityFlags(e.target.checked)}
-            disabled={!data}
-            style={{ 
-              display: 'inline',
-              cursor: data ? 'pointer' : 'not-allowed',
-              width: 14,
-              height: 14,
-              margin: 0
-            }}
-          />
-          <span style={{ 
-            fontSize: 11, 
-            color: 'rgba(255, 255, 255, 0.8)',
-            whiteSpace: 'nowrap' // Text taşmayı engelle
-          }}>
-            Kalite bayrakları
-          </span>
-        </label>
-        
-        <div style={{ 
-          display: 'inline',
-          alignItems: 'center',
-          verticalAlign: 'middle'  }} />
-        
-        {/* Actions - Tüm butonlar hizalı */}
+        {/* Row 3: Action Buttons */}
         {data && (
-          <>
+          <div style={{
+            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+            paddingTop: 12
+          }}>
             <button
               onClick={handleDownloadCSV}
               style={{
-                display: 'inline',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 0, // Padding kaldırıldı, boyut sabit
-                background: 'rgba(34, 197, 94, 0.2)',
-                border: '1px solid rgba(34, 197, 94, 0.4)',
-                borderRadius: 8,
+                padding: '8px 16px',
+                background: 'rgba(34, 197, 94, 0.15)',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+                borderRadius: 6,
                 color: 'rgb(134, 239, 172)',
-                fontSize: 11,
-                fontWeight: 600,
+                fontSize: 12,
+                fontWeight: 500,
                 cursor: 'pointer',
-                height: 32, // Aynı yükseklik
-                width: 50, // Sabit genişlik (daha uzun text için)
-                minHeight: 32, // Garanti
-                minWidth: 32,
-                opacity: isLoading || !data ? 0.5 : 1,
-                boxSizing: 'border-box', // Border dahil hesaplama
-                flexShrink: 0, // Küçülmeyi engelle
-              
+                marginRight: 8,
+                transition: 'all 0.2s'
               }}
             >
-              📥 CSV
+              📥 Export CSV
             </button>
             <button
               onClick={handleDownloadPNG}
               style={{
-                display: 'inline',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 0, // Padding kaldırıldı, boyut sabit
-                background: 'rgba(59, 130, 246, 0.2)',
-                border: '1px solid rgba(59, 130, 246, 0.4)',
-                borderRadius: 8,
+                padding: '8px 16px',
+                background: 'rgba(59, 130, 246, 0.15)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                borderRadius: 6,
                 color: 'rgb(147, 197, 253)',
-                fontSize: 11,
-                fontWeight: 600,
+                fontSize: 12,
+                fontWeight: 500,
                 cursor: 'pointer',
-                height: 32, // Aynı yükseklik
-                width: 50, // Sabit genişlik (daha uzun text için)
-                minHeight: 32, // Garanti
-                minWidth: 32,
-                opacity: isLoading || !data ? 0.5 : 1,
-                boxSizing: 'border-box', // Border dahil hesaplama
-                flexShrink: 0 // Küçülmeyi engelle  
-           
+                marginRight: 8,
+                transition: 'all 0.2s'
               }}
             >
-              📥 PNG
+              📥 Export PNG
             </button>
             {onAnalyze && (
               <button
                 onClick={onAnalyze}
                 style={{
-                  display: 'inline',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  verticalAlign: 'middle',
-                  padding: '0 16px',
-                  background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.8), rgba(79, 70, 229, 0.8))',
-                  border: '1px solid rgba(147, 51, 234, 0.4)',
-                  borderRadius: 8,
+                  padding: '10px 20px',
+                  background: 'rgba(147, 151, 234, 0.9)',
+                  border: 'none',
+                  borderRadius: 6,
                   color: 'white',
-                  fontSize: 12,
-                  fontWeight: 700,
+                  fontSize: 13,
+                  fontWeight: 500,
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)',
-                  height: 32, // Aynı yükseklik
-                  minHeight: 32,
-                  
+                  boxShadow: '0 2px 8px rgba(147, 151, 234, 0.3)',
+                  transition: 'all 0.2s',
+                  float: 'right'
                 }}
               >
-                ⚡ Analiz Et
+                ⚡ Run Analysis
               </button>
             )}
-          </>
+          </div>
         )}
       </div>
       
       {/* Zoom Controls */}
       {data && (
         <div style={{
-          padding: '8px 16px',
-          background: 'rgba(0, 0, 0, 0.2)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          display: 'flex',
-          gap: 12,
-          alignItems: 'center'
+          padding: '12px 20px',
+          background: '#1a1a1a',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
         }}>
-          <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.6)' }}>Zoom:</span>
-          <input
-            type="range"
-            min="0"
-            max="0.9"
-            step="0.1"
-            value={zoom.start}
-            onChange={(e) => setZoom({ ...zoom, start: parseFloat(e.target.value) })}
-            style={{ flex: 1 }}
-          />
-          <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.8)', fontFamily: 'monospace' }}>
-            {(zoom.start * 100).toFixed(0)}% - {(zoom.end * 100).toFixed(0)}%
-          </span>
-          <input
-            type="range"
-            min="0.1"
-            max="1"
-            step="0.1"
-            value={zoom.end}
-            onChange={(e) => setZoom({ ...zoom, end: parseFloat(e.target.value) })}
-            style={{ flex: 1 }}
-          />
-          <button
-            onClick={() => setZoom({ start: 0, end: 1 })}
-            style={{
-              padding: '4px 10px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: 6,
-              color: 'white',
-              fontSize: 10,
-              cursor: 'pointer'
-            }}
-          >
-            Reset
-          </button>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 500,
+            color: 'rgba(255, 255, 255, 0.5)',
+            marginBottom: 10,
+            letterSpacing: 0.5
+          }}>
+            Zoom Range
+          </div>
+          <div>
+            <div style={{ marginBottom: 8 }}>
+              <input
+                type="range"
+                min="0"
+                max="0.9"
+                step="0.1"
+                value={zoom.start}
+                onChange={(e) => setZoom({ ...zoom, start: parseFloat(e.target.value) })}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <input
+                type="range"
+                min="0.1"
+                max="1"
+                step="0.1"
+                value={zoom.end}
+                onChange={(e) => setZoom({ ...zoom, end: parseFloat(e.target.value) })}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <span style={{ 
+                fontSize: 12,
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontFamily: 'monospace',
+                marginRight: 12
+              }}>
+                {(zoom.start * 100).toFixed(0)}% - {(zoom.end * 100).toFixed(0)}%
+              </span>
+              <button
+                onClick={() => setZoom({ start: 0, end: 1 })}
+                style={{
+                  padding: '6px 14px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: 6,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  float: 'right'
+                }}
+              >
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
       )}
       
@@ -441,22 +431,34 @@ export default function LightCurvePanel({
       {/* Info Bar */}
       {data && (
         <div style={{
-          padding: '8px 16px',
-          background: 'rgba(0, 0, 0, 0.3)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          display: 'flex',
-          gap: 20,
-          fontSize: 11,
-          color: 'rgba(255, 255, 255, 0.6)',
-          fontFamily: 'monospace'
+          padding: '12px 20px',
+          background: '#202020',
+          borderTop: '1px solid rgba(255, 255, 255, 0.06)'
         }}>
-          <div>Hedef: <span style={{ color: 'white' }}>{data.targetId}</span></div>
-          <div>Misyon: <span style={{ color: 'white' }}>{data.mission}</span></div>
-          {data.sector && <div>Sector: <span style={{ color: 'white' }}>{data.sector}</span></div>}
-          <div>
-            Nokta sayısı: <span style={{ color: 'white' }}>
-              {(selectedDataType === 'SAP' ? data.sapFlux : data.pdcsapFlux).length.toLocaleString()}
-            </span>
+          <div style={{
+            fontSize: 11,
+            color: 'rgba(255, 255, 255, 0.5)',
+            fontFamily: 'monospace',
+            lineHeight: 1.6
+          }}>
+            <div style={{ marginBottom: 4 }}>
+              <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Target:</span>{' '}
+              <span style={{ color: '#ffffff' }}>{data.targetId}</span>
+              <span style={{ marginLeft: 16, color: 'rgba(255, 255, 255, 0.5)' }}>Mission:</span>{' '}
+              <span style={{ color: '#ffffff' }}>{data.mission}</span>
+            </div>
+            {data.sector && (
+              <div style={{ marginBottom: 4 }}>
+                <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Sector:</span>{' '}
+                <span style={{ color: '#ffffff' }}>{data.sector}</span>
+              </div>
+            )}
+            <div>
+              <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Data Points:</span>{' '}
+              <span style={{ color: '#ffffff' }}>
+                {(selectedDataType === 'SAP' ? data.sapFlux : data.pdcsapFlux).length.toLocaleString()}
+              </span>
+            </div>
           </div>
         </div>
       )}
