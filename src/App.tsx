@@ -1,90 +1,143 @@
-import { Suspense, useRef } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { CameraControls, Stars } from '@react-three/drei'
-import type { CameraControls as CameraControlsImpl } from 'camera-controls'
+import { useState } from 'react'
 
 export default function App() {
-  const controlsRef = useRef<CameraControlsImpl>(null)
-
-  // Basit "flyTo" yardımcıları:
-  const flyToDirection = (dir: [number, number, number], dist = 10) => {
-    if (!controlsRef.current) return
-    // dir bir yön vektörü (x,y,z). normalize edip kamerayı o yöne "dist" kadar taşı.
-    const [dx, dy, dz] = dir
-    const len = Math.hypot(dx, dy, dz) || 1
-    const nx = dx / len, ny = dy / len, nz = dz / len
-    const cx = nx * dist, cy = ny * dist, cz = nz * dist
-    // setLookAt(camX,camY,camZ, lookAtX,lookAtY,lookAtZ, smooth=true)
-    controlsRef.current.setLookAt(cx, cy, cz, 0, 0, 0, true)
-  }
-
-  // Örnek: RA(saat), Dec(derece) -> yön vektörü
-  const raDecToDir = (raHours: number, decDeg: number): [number, number, number] => {
-    const ra = (raHours * Math.PI) / 12 // 24h -> 2π
-    const dec = (decDeg * Math.PI) / 180
-    const x = Math.cos(dec) * Math.cos(ra)
-    const y = Math.sin(dec)
-    const z = Math.cos(dec) * Math.sin(ra)
-    return [x, y, z]
-  }
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false)
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh' }}>
-      <aside style={{ width: 320, padding: 12, background: '#0b0b0e', color: 'white' }}>
-        <h3>Kontroller</h3>
-        <button
-          onClick={() => flyToDirection([0, 0, 1], 8)}
-          style={{ display: 'block', marginBottom: 8 }}
-        >
-          +Z yönüne uç
-        </button>
-        <button
-          onClick={() => flyToDirection(raDecToDir(19.5, 40), 12)} // örnek bir RA/Dec
-          style={{ display: 'block', marginBottom: 8 }}
-        >
-          RA=19.5h, Dec=40° yönüne uç
-        </button>
-        <p style={{ opacity: 0.8 }}>
-          Scroll ile zoom; fare sağ tık/orta tuş ile pan; solda orbit.
-        </p>
-      </aside>
-
-      <main style={{ flex: 1 }}>
-        <Canvas
-          camera={{ fov: 50, position: [0, 3, 8] }}
-          gl={{ antialias: true }}
-        >
-          {/* Kamera kontrolleri: en kritik parça */}
-          <CameraControls
-            ref={controlsRef}
-            makeDefault
-            smoothTime={0.5}     // hareketlerin yumuşaklığı
-            dollyToCursor        // zoom, imlece doğru yaklaşır
-            infinityDolly={false}
-            minDistance={2}
-            maxDistance={200}
+    <div style={{ 
+      width: '100vw', 
+      height: '100vh', 
+      position: 'relative',
+      background: 'linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%)'
+    }}>
+      {/* Floating Search Bar */}
+      <div style={{
+        position: 'absolute',
+        top: 30,
+        left: 30,
+        zIndex: 1000,
+        width: 320
+      }}>
+        <div style={{ position: 'relative' }}>
+          {/* Search Input */}
+          <input
+            type="text"
+            placeholder="🔍 Search planets..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchExpanded(true)}
+            style={{
+              width: '100%',
+              padding: '14px 44px 14px 20px',
+              background: 'rgba(10, 10, 15, 0.85)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: 50,
+              color: 'white',
+              fontSize: 15,
+              outline: 'none',
+              transition: 'all 0.3s',
+              boxSizing: 'border-box',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+              fontWeight: 400
+            }}
           />
+          
+          {/* Clear Button */}
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute',
+                right: 14,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'rgba(255, 255, 255, 0.15)',
+                border: 'none',
+                borderRadius: '50%',
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: 14,
+                width: 26,
+                height: 26,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+            >
+              ×
+            </button>
+          )}
+        </div>
 
-          {/* Işıklar */}
-          <ambientLight intensity={0.25} />
-          <directionalLight position={[10, 10, 10]} intensity={1} />
+        {/* Expanded Results Panel */}
+        {(isSearchExpanded || searchQuery) && (
+          <div style={{
+            marginTop: 12,
+            background: 'rgba(10, 10, 15, 0.9)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            borderRadius: 20,
+            padding: 16,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+            maxHeight: '70vh',
+            overflowY: 'auto',
+            animation: 'slideDown 0.3s ease-out'
+          }}>
+            <div style={{ 
+              padding: 20, 
+              textAlign: 'center', 
+              color: '#888',
+              fontSize: 13
+            }}>
+              Henüz veri yok
+            </div>
+          </div>
+        )}
+      </div>
 
-          {/* Yıldız arka planı ve test küresi */}
-          <Suspense fallback={null}>
-            <Stars radius={200} depth={50} count={5000} fade />
-            <TestSphere />
-          </Suspense>
-        </Canvas>
-      </main>
+      {/* Close overlay when clicking outside */}
+      {(isSearchExpanded || searchQuery) && (
+        <div
+          onClick={() => setIsSearchExpanded(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 999
+          }}
+        />
+      )}
+
+      <style>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
     </div>
   )
 }
 
-function TestSphere() {
-  return (
-    <mesh>
-      <sphereGeometry args={[1, 32, 32]} />
-      <meshStandardMaterial color="#9ec9ff" />
-    </mesh>
-  )
-}
