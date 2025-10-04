@@ -4,6 +4,7 @@ import { CameraControls } from '@react-three/drei'
 import CameraControlsImpl from 'camera-controls'
 import type { TimeControl, Planet } from './types'
 import type { ExoplanetTarget } from './types/exoplanet'
+import { planets } from './constants/planets'
 import SpaceBackground from './components/SpaceBackground'
 import SolarSystem from './components/SolarSystem'
 import SearchBar from './components/SearchBar'
@@ -68,7 +69,17 @@ export default function App() {
       {/* Modern Search Bar */}
       <SearchBar 
         controlsRef={controlsRef}
-        onTargetSelect={setSelectedTarget}
+        onTargetSelect={(target) => {
+          setSelectedTarget(target)
+          setSelectedPlanet(null) // Exoplanet seçilince gezegen seçimini temizle
+        }}
+        onPlanetSelect={(planetName) => {
+          const planet = planets.find(p => p.name === planetName)
+          if (planet) {
+            setSelectedPlanet(planet)
+            setSelectedTarget(null) // Gezegen seçilince exoplanet seçimini temizle
+          }
+        }}
       />
 
       {/* Canvas - Ana 3D Sahne */}
