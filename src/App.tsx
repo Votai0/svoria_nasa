@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
 import CameraControlsImpl from 'camera-controls'
 import type { TimeControl, Planet } from './types'
-import type { ExoplanetTarget } from './types/exoplanet'
+import type { ExoplanetTarget, KOIPlanet } from './types/exoplanet'
 import SpaceBackground from './components/SpaceBackground'
 import SolarSystem from './components/SolarSystem'
 import SearchBar from './components/SearchBar'
@@ -33,6 +33,7 @@ export default function App() {
   
   // Seçili exoplanet hedefi
   const [selectedTarget, setSelectedTarget] = useState<ExoplanetTarget | null>(null)
+  const [selectedKOI, setSelectedKOI] = useState<KOIPlanet | null>(null)
   const [sector, setSector] = useState<number | undefined>(undefined)
   
   // Seçili gezegen
@@ -105,6 +106,18 @@ export default function App() {
       }
     }
   }, [koiTargets])
+  
+  // Hedef seçildiğinde tam KOI verisini bul
+  useEffect(() => {
+    if (selectedTarget && koiPlanets.length > 0) {
+      const kepid = parseInt(selectedTarget.id.replace('KOI-', ''))
+      const fullKOI = koiPlanets.find(koi => koi.kepid === kepid)
+      setSelectedKOI(fullKOI || null)
+      console.log('🎯 Seçili KOI:', fullKOI)
+    } else {
+      setSelectedKOI(null)
+    }
+  }, [selectedTarget, koiPlanets])
   
   // Hedef değiştiğinde URL'yi güncelle
   useEffect(() => {
@@ -225,11 +238,6 @@ export default function App() {
             timeControl={timeControl} 
             setTimeControl={setTimeControl}
             onPlanetClick={setSelectedPlanet}
-            koiPlanets={koiPlanets}
-            selectedKepid={selectedTarget?.id.startsWith('KOI-') 
-              ? parseInt(selectedTarget.id.replace('KOI-', '')) 
-              : undefined
-            }
           />
           <CameraDistanceTracker 
             timeControl={timeControl} 
@@ -266,7 +274,8 @@ export default function App() {
       
       {/* Sağ: Analiz paneli (hem exoplanet hem gezegen bilgileri) */}
       <AnalysisPanel 
-        selectedTarget={selectedTarget} 
+        selectedTarget={selectedTarget}
+        selectedKOI={selectedKOI}
         selectedPlanet={selectedPlanet}
         isVisible={panelsVisible.analysis}
         onToggle={() => togglePanel('analysis')}

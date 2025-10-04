@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { 
-  ExoplanetTarget, 
+  ExoplanetTarget,
+  KOIPlanet,
   LightCurveData, 
   PeriodogramData, 
   PhaseFoldedData,
@@ -19,20 +20,20 @@ import {
   runBLSAnalysis,
   foldLightCurve,
   predictPlanetCandidate,
-  fetchCatalogInfo,
-  fetchCatalogInfoFromKOI
+  fetchCatalogInfo
 } from '../services/exoplanetAPI'
 
 type AnalysisTab = 'lightcurve' | 'periodogram' | 'folded' | 'model' | 'catalog'
 
 type Props = {
   selectedTarget: ExoplanetTarget | null
+  selectedKOI?: KOIPlanet | null
   selectedPlanet?: Planet | null
   isVisible: boolean
   onToggle: () => void
 }
 
-export default function AnalysisPanel({ selectedTarget, selectedPlanet, isVisible, onToggle }: Props) {
+export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPlanet, isVisible, onToggle }: Props) {
   const [activeTab, setActiveTab] = useState<AnalysisTab>('lightcurve')
   const [dataType, setDataType] = useState<'SAP' | 'PDCSAP'>('PDCSAP')
   
@@ -54,33 +55,30 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet, isVisibl
   // Error state
   const [error, setError] = useState<string | null>(null)
   
-  // 1. Light curve yükle
+  // 1. Light curve yükle (KOI parametreleri ile)
   const handleLoadLightCurve = async () => {
-    if (!selectedTarget) return
+    if (!selectedTarget || !selectedKOI) return
     
     setError(null)
     setIsLoadingLC(true)
     
     try {
-      const data = await fetchLightCurve(selectedTarget.id, dataType)
+      // KOI parametrelerini kullanarak işık eğrisi üret
+      const data = await fetchLightCurve(selectedTarget.id, dataType, undefined, selectedKOI)
       setLightCurve(data)
       
-      // Katalog bilgilerini de yükle - KOI için direkt API'den
+      // Katalog bilgilerini KOI verisinden oluştur
       setIsLoadingCatalog(true)
-      try {
-        if (selectedTarget.id.startsWith('KOI-')) {
-          const kepid = parseInt(selectedTarget.id.replace('KOI-', ''))
-          const catalog = await fetchCatalogInfoFromKOI(kepid)
-          setCatalogInfo(catalog)
-        } else {
-          const catalog = await fetchCatalogInfo(selectedTarget.id)
-          setCatalogInfo(catalog)
-        }
-      } catch (catalogErr) {
-        console.warn('Katalog bilgileri yüklenemedi:', catalogErr)
-        // Katalog yüklenemezse devam et
-      }
+      const catalog = await fetchCatalogInfo(selectedTarget.id, selectedKOI)
+      setCatalogInfo(catalog)
       setIsLoadingCatalog(false)
+      
+      console.log('📈 Işık eğrisi yüklendi:', {
+        period: selectedKOI.koi_period,
+        depth: selectedKOI.koi_depth,
+        duration: selectedKOI.koi_duration,
+        snr: selectedKOI.koi_model_snr
+      })
     } catch (err) {
       setError('Işık eğrisi yüklenirken hata oluştu')
       console.error(err)
@@ -89,22 +87,29 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet, isVisibl
     }
   }
   
-  // 2. BLS analizi
+  // 2. BLS analizi (KOI periyodu referans alınarak)
   const handleRunBLS = async () => {
-    if (!lightCurve) return
+    if (!lightCurve || !selectedKOI) return
     
     setError(null)
     setIsLoadingBLS(true)
     setActiveTab('periodogram')
     
     try {
-      const result = await runBLSAnalysis(lightCurve)
+      // KOI verisi ile BLS analizi
+      const result = await runBLSAnalysis(lightCurve, selectedKOI)
       setPeriodogram(result)
       
-      // En iyi periyodu otomatik seç
+      // En iyi periyodu otomatik seç (KOI katalog periyodu olacak)
       if (result.bestPeriods.length > 0) {
         handleSelectPeriod(result.bestPeriods[0])
       }
+      
+      console.log('📈 BLS analizi tamamlandı:', {
+        bestPeriod: result.bestPeriods[0]?.period,
+        koiCatalogPeriod: selectedKOI.koi_period,
+        match: Math.abs((result.bestPeriods[0]?.period || 0) - (selectedKOI.koi_period || 0)) < 0.01
+      })
     } catch (err) {
       setError('BLS analizi başarısız oldu')
       console.error(err)
@@ -137,7 +142,7 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet, isVisibl
     }
   }
   
-  // 4. AI tahmini
+  // 4. AI tahmini (KOI katalog verisiyle)
   const handlePredict = async () => {
     if (!selectedPeriod || !lightCurve) return
     
@@ -146,8 +151,16 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet, isVisibl
     setActiveTab('model')
     
     try {
-      const result = await predictPlanetCandidate(selectedPeriod, lightCurve)
+      // KOI verisini kullanarak AI tahmini
+      const result = await predictPlanetCandidate(selectedPeriod, lightCurve, selectedKOI || undefined)
       setPrediction(result)
+      
+      console.log('🤖 AI Tahmini:', {
+        probability: result.probability,
+        disposition: selectedKOI?.koi_pdisposition,
+        confirmed: selectedKOI?.koi_disposition,
+        confidence: result.confidence
+      })
     } catch (err) {
       setError('AI tahmini başarısız oldu')
       console.error(err)
@@ -168,10 +181,10 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet, isVisibl
     setActiveTab('lightcurve')
   }
   
-  // Hedef değişimini izle
+  // Hedef değişimini izle - KOI verisi varsa otomatik yükle
   const currentTargetId = selectedTarget?.id
   const prevTargetId = lightCurve?.targetId
-  if (currentTargetId && currentTargetId !== prevTargetId && !isLoadingLC) {
+  if (currentTargetId && currentTargetId !== prevTargetId && !isLoadingLC && selectedKOI) {
     resetAnalysis()
     handleLoadLightCurve()
   }
@@ -447,7 +460,7 @@ export default function AnalysisPanel({ selectedTarget, selectedPlanet, isVisibl
               <CatalogPanel
                 catalogInfo={catalogInfo}
                 isLoading={isLoadingCatalog}
-                koiData={selectedTarget?.koiData}
+                koiData={selectedKOI}
               />
             )}
           </>

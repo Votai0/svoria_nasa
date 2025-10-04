@@ -145,23 +145,27 @@ export async function searchKOIPlanets(query: string): Promise<ExoplanetTarget[]
 // ============================================================================
 // Note: SearchBar now uses searchKOIPlanets() with real API data
 
-// Light curve verisi çek
+/**
+ * Fetch light curve data from KOI parameters
+ * Generates synthetic light curve based on real KOI transit parameters
+ */
 export async function fetchLightCurve(
   targetId: string,
-  dataType: 'SAP' | 'PDCSAP' = 'PDCSAP',
-  sector?: number
+  _dataType: 'SAP' | 'PDCSAP' = 'PDCSAP',
+  sector?: number,
+  koiData?: KOIPlanet
 ): Promise<LightCurveData> {
   // Gerçek uygulamada MAST Archive API kullanılır
   // https://mast.stsci.edu/api/v0/pyex.html
   
   await new Promise(resolve => setTimeout(resolve, 1500))
   
-  // Mock veri üret - gerçek transit sinyali ile
+  // KOI parametrelerinden gerçekçi veri üret
   const numPoints = 10000
-  const period = 3.85 // gün
-  const t0 = 0.5
-  const duration = 0.12 // gün
-  const depth = 0.01 // %1 derinlik
+  const period = koiData?.koi_period || 3.85 // gün
+  const t0 = koiData?.koi_time0bk ? (koiData.koi_time0bk % period) : 0.5
+  const duration = koiData?.koi_duration ? koiData.koi_duration / 24 : 0.12 // saatten güne
+  const depth = koiData?.koi_depth ? koiData.koi_depth / 1e6 : 0.01 // ppm'den normalize
   
   const sapFlux = []
   const pdcsapFlux = []
@@ -208,43 +212,55 @@ export async function fetchLightCurve(
   }
 }
 
-// BLS analizi çalıştır
+/**
+ * Run BLS (Box Least Squares) analysis on light curve
+ * Uses KOI catalog period as reference for realistic periodogram
+ */
 export async function runBLSAnalysis(
-  lightCurve: LightCurveData,
+  _lightCurve: LightCurveData,
+  koiData?: KOIPlanet,
   minPeriod: number = 0.5,
   maxPeriod: number = 20
 ): Promise<PeriodogramData> {
   // Gerçek uygulamada astropy BLS veya lightkurve kullanılır
   await new Promise(resolve => setTimeout(resolve, 2000))
   
-  // Mock periodogram
+  // KOI katalog periyodunu kullan
+  const truePeriod = koiData?.koi_period || 3.85
+  const trueT0 = koiData?.koi_time0bk || 0.5
+  const trueDuration = koiData?.koi_duration || 2.88 // saat
+  const trueDepth = koiData?.koi_depth ? koiData.koi_depth / 1e6 : 0.01
+  const trueSNR = koiData?.koi_model_snr || 15
+  
   const periods: number[] = []
   const power: number[] = []
   
   for (let p = minPeriod; p <= maxPeriod; p += 0.01) {
     periods.push(p)
     // Gerçek periyotta pik oluştur
-    const truePeriod = 3.85
     const dist = Math.abs(p - truePeriod)
     const signal = Math.exp(-dist * dist / 0.02)
     const noise = Math.random() * 0.1
     power.push(signal + noise)
   }
   
-  // En yüksek 3 piki bul
+  // En yüksek 3 piki bul (gerçek KOI periyodu ilk sırada olacak)
   const peaks: BLSResult[] = []
   const sortedIndices = power
     .map((p, i) => ({ power: p, index: i }))
     .sort((a, b) => b.power - a.power)
     .slice(0, 3)
   
-  sortedIndices.forEach(({ power: p, index: i }) => {
+  sortedIndices.forEach(({ power: p, index: i }, rank) => {
+    const period = periods[i]
+    // İlk peak (en güçlü) KOI katalog değerlerini kullanır
+    const isMainPeak = rank === 0
     peaks.push({
-      period: periods[i],
-      t0: 0.5,
-      duration: 2.88, // saat
-      depth: 0.01,
-      snr: p * 15,
+      period: isMainPeak ? truePeriod : period,
+      t0: isMainPeak ? trueT0 : 0.5,
+      duration: isMainPeak ? trueDuration : 2.88,
+      depth: isMainPeak ? trueDepth : 0.01,
+      snr: isMainPeak ? trueSNR : p * 10,
       power: p
     })
   })
@@ -319,41 +335,93 @@ export async function foldLightCurve(
   }
 }
 
-// AI model tahmini
+/**
+ * AI model prediction using KOI catalog data and BLS results
+ * Simulates ML model using real KOI parameters
+ */
 export async function predictPlanetCandidate(
   blsResult: BLSResult,
-  lightCurve: LightCurveData
+  _lightCurve: LightCurveData,
+  koiData?: KOIPlanet
 ): Promise<ModelPrediction> {
   // Gerçek uygulamada TensorFlow.js veya backend ML modeli
   await new Promise(resolve => setTimeout(resolve, 800))
   
   const { snr, depth, duration } = blsResult
   
-  // Basit skor hesabı (gerçek model çok daha karmaşık)
-  const snrScore = Math.min(snr / 20, 1)
-  const depthScore = depth > 0.001 && depth < 0.1 ? 1 : 0.5
-  const durationScore = duration > 1 && duration < 10 ? 1 : 0.6
-  const shapeScore = 0.82 // Shape analizi skorunu simüle et
+  // KOI disposition skorunu kullan (eğer varsa)
+  let baseScore = 0.5
+  if (koiData) {
+    // KOI score varsa direkt kullan (0-1 arası)
+    if (koiData.koi_score !== undefined && koiData.koi_score !== null) {
+      baseScore = koiData.koi_score
+    }
+    
+    // veya disposition'dan tahmin et
+    if (koiData.koi_pdisposition === 'CONFIRMED') {
+      baseScore = 0.95
+    } else if (koiData.koi_disposition === 'CONFIRMED') {
+      baseScore = 0.92
+    } else if (koiData.koi_pdisposition === 'CANDIDATE') {
+      baseScore = 0.65
+    } else if (koiData.koi_pdisposition === 'FALSE_POSITIVE') {
+      baseScore = 0.15
+    }
+    
+    // False positive flagları varsa skoru düşür
+    if (koiData.koi_fpflag_nt || koiData.koi_fpflag_ss || 
+        koiData.koi_fpflag_co || koiData.koi_fpflag_ec) {
+      baseScore *= 0.7
+    }
+  } else {
+    // KOI verisi yoksa BLS parametrelerinden hesapla
+    const snrScore = Math.min(snr / 20, 1)
+    const depthScore = depth > 0.001 && depth < 0.1 ? 1 : 0.5
+    const durationScore = duration > 1 && duration < 10 ? 1 : 0.6
+    const shapeScore = 0.82
+    baseScore = (snrScore * 0.4 + depthScore * 0.2 + durationScore * 0.2 + shapeScore * 0.2)
+  }
   
-  const probability = (snrScore * 0.4 + depthScore * 0.2 + durationScore * 0.2 + shapeScore * 0.2)
+  const probability = Math.max(0, Math.min(1, baseScore))
   
   let explanation = ''
-  if (probability > 0.8) {
-    explanation = 'Güçlü transit sinyali, tutarlı periyot ve uygun derinlik. Yüksek gezegen adayı olasılığı.'
-  } else if (probability > 0.5) {
-    explanation = 'Transit benzeri sinyal mevcut, ancak SNR veya şekil özellikleri belirsizlik içeriyor.'
+  let disposition = ''
+  
+  if (koiData) {
+    disposition = koiData.koi_pdisposition || koiData.koi_disposition || 'UNKNOWN'
+    
+    if (disposition === 'CONFIRMED') {
+      explanation = `✓ Onaylanmış exoplanet. Kepler katalog verileri transit sinyalini doğruladı. SNR: ${snr.toFixed(1)}, Periyot: ${blsResult.period.toFixed(3)} gün.`
+    } else if (disposition === 'CANDIDATE') {
+      explanation = `Gezegen adayı. Transit sinyali mevcut ancak ek doğrulama gerekli. SNR: ${snr.toFixed(1)}, Derinlik: ${(depth * 1e6).toFixed(0)} ppm.`
+    } else if (disposition === 'FALSE_POSITIVE') {
+      explanation = `Yanlış pozitif olarak işaretlenmiş. Sinyal muhtemelen stellar aktivite veya ikili yıldız etkisi.`
+    } else {
+      explanation = `Transit benzeri sinyal tespit edildi. Katalog skoru: ${probability.toFixed(2)}`
+    }
+    
+    // Ek bilgiler ekle
+    if (koiData.koi_num_transits) {
+      explanation += ` ${koiData.koi_num_transits} transit gözlendi.`
+    }
   } else {
-    explanation = 'Zayıf sinyal veya stellar aktivite ile karışabilir. Ek doğrulama gerekli.'
+    if (probability > 0.8) {
+      explanation = 'Güçlü transit sinyali, tutarlı periyot ve uygun derinlik. Yüksek gezegen adayı olasılığı.'
+    } else if (probability > 0.5) {
+      explanation = 'Transit benzeri sinyal mevcut, ancak SNR veya şekil özellikleri belirsizlik içeriyor.'
+    } else {
+      explanation = 'Zayıf sinyal veya stellar aktivite ile karışabilir. Ek doğrulama gerekli.'
+    }
   }
   
   return {
     probability,
-    confidence: 0.85,
+    confidence: koiData ? 0.95 : 0.75,
     features: {
       snr,
       depth,
       duration_ratio: duration / (blsResult.period * 24),
-      shape_score: shapeScore
+      shape_score: koiData?.koi_score || 0.82
     },
     explanation,
     threshold: 0.75
@@ -385,31 +453,17 @@ export function koiToCatalogInfo(koi: KOIPlanet): CatalogInfo {
   }
 }
 
-// Katalog bilgilerini çek
-export async function fetchCatalogInfo(targetId: string): Promise<CatalogInfo> {
-  // Gerçek uygulamada NASA Exoplanet Archive TAP service
-  await new Promise(resolve => setTimeout(resolve, 600))
+/**
+ * Fetch catalog info from KOI data directly
+ */
+export async function fetchCatalogInfo(
+  _targetId: string,
+  koiData: KOIPlanet
+): Promise<CatalogInfo> {
+  await new Promise(resolve => setTimeout(resolve, 300))
   
-  // Mock katalog verisi
-  return {
-    targetId,
-    stellar: {
-      teff: 3500,
-      radius: 0.42,
-      mass: 0.45,
-      logg: 4.82,
-      metallicity: -0.15
-    },
-    planetary: {
-      radius: 1.06,
-      period: 3.85,
-      semi_major_axis: 0.048,
-      equilibrium_temp: 320,
-      insolation: 1.2
-    },
-    source: 'NASA Exoplanet Archive',
-    sourceUrl: 'https://exoplanetarchive.ipac.caltech.edu/'
-  }
+  // KOI verisinden katalog bilgisi oluştur
+  return koiToCatalogInfo(koiData)
 }
 
 /**

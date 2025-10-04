@@ -6,7 +6,7 @@ type Props = {
   koiData?: KOIPlanet | null // Detaylı KOI verisi
 }
 
-export default function CatalogPanel({ catalogInfo, isLoading, koiData }: Props) {
+export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }: Props) {
   
   if (isLoading) {
     return (
@@ -352,6 +352,262 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData }: Props)
                   {koiData.koi_fpflag_co === 1 && <span>• Centroid Offset</span>}
                   {koiData.koi_fpflag_ec === 1 && <span>• Ephemeris Match</span>}
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* KOI Validation Status */}
+      {koiData && (
+        <div>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'rgba(255, 255, 255, 0.5)',
+            marginBottom: 12,
+            letterSpacing: 1
+          }}>
+            ✓ DOĞRULAMA DURUMU
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: 10
+          }}>
+            {/* Disposition Status */}
+            <div style={{
+              padding: '14px 16px',
+              background: koiData.koi_pdisposition === 'CONFIRMED' 
+                ? 'rgba(34, 197, 94, 0.15)'
+                : koiData.koi_pdisposition === 'FALSE_POSITIVE'
+                  ? 'rgba(239, 68, 68, 0.15)'
+                  : 'rgba(234, 179, 8, 0.15)',
+              border: koiData.koi_pdisposition === 'CONFIRMED'
+                ? '1px solid rgba(34, 197, 94, 0.4)'
+                : koiData.koi_pdisposition === 'FALSE_POSITIVE'
+                  ? '1px solid rgba(239, 68, 68, 0.4)'
+                  : '1px solid rgba(234, 179, 8, 0.4)',
+              borderRadius: 10,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                Disposition
+              </span>
+              <span style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: koiData.koi_pdisposition === 'CONFIRMED'
+                  ? 'rgb(134, 239, 172)'
+                  : koiData.koi_pdisposition === 'FALSE_POSITIVE'
+                    ? 'rgb(248, 113, 113)'
+                    : 'rgb(253, 224, 71)',
+                fontFamily: 'monospace'
+              }}>
+                {koiData.koi_pdisposition || koiData.koi_disposition || 'UNKNOWN'}
+              </span>
+            </div>
+            
+            {/* Number of Transits */}
+            {koiData.koi_num_transits && (
+              <div style={{
+                padding: '12px 14px',
+                background: 'rgba(99, 102, 241, 0.1)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                borderRadius: 10,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Gözlenen Transit Sayısı
+                </span>
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: 'rgb(165, 180, 252)',
+                  fontFamily: 'monospace'
+                }}>
+                  {koiData.koi_num_transits}
+                </span>
+              </div>
+            )}
+            
+            {/* KOI Score */}
+            {koiData.koi_score !== undefined && koiData.koi_score !== null && (
+              <div style={{
+                padding: '12px 14px',
+                background: 'rgba(147, 51, 234, 0.1)',
+                border: '1px solid rgba(147, 51, 234, 0.3)',
+                borderRadius: 10,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  KOI Skor
+                </span>
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: 'rgb(196, 181, 253)',
+                  fontFamily: 'monospace'
+                }}>
+                  {koiData.koi_score.toFixed(3)}
+                </span>
+              </div>
+            )}
+            
+            {/* False Positive Flags */}
+            {(koiData.koi_fpflag_nt || koiData.koi_fpflag_ss || koiData.koi_fpflag_co || koiData.koi_fpflag_ec) && (
+              <div style={{
+                padding: '12px 14px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 10
+              }}>
+                <div style={{ fontSize: 11, color: 'rgb(248, 113, 113)', fontWeight: 600, marginBottom: 8 }}>
+                  ⚠️ False Positive Bayrakları
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {koiData.koi_fpflag_nt === 1 && <div>• Not Transit-Like</div>}
+                  {koiData.koi_fpflag_ss === 1 && <div>• Stellar Eclipse (SS)</div>}
+                  {koiData.koi_fpflag_co === 1 && <div>• Centroid Offset (CO)</div>}
+                  {koiData.koi_fpflag_ec === 1 && <div>• Ephemeris Match (EC)</div>}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* KOI Transit Geometry */}
+      {koiData && (koiData.koi_ror || koiData.koi_dor || koiData.koi_impact !== undefined) && (
+        <div>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'rgba(255, 255, 255, 0.5)',
+            marginBottom: 12,
+            letterSpacing: 1
+          }}>
+            🔭 TRANSİT GEOMETRİSİ
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: 10
+          }}>
+            {koiData.koi_ror && (
+              <div style={{
+                padding: '12px 14px',
+                background: 'rgba(147, 51, 234, 0.1)',
+                border: '1px solid rgba(147, 51, 234, 0.3)',
+                borderRadius: 10,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Rp/R★ Oranı
+                </span>
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: 'rgb(196, 181, 253)',
+                  fontFamily: 'monospace'
+                }}>
+                  {koiData.koi_ror.toFixed(5)}
+                  {koiData.koi_ror_err1 && (
+                    <span style={{ fontSize: 10, opacity: 0.6, fontWeight: 400 }}>
+                      {' '}±{((koiData.koi_ror_err1 + Math.abs(koiData.koi_ror_err2 || 0))/2).toFixed(5)}
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+            
+            {koiData.koi_dor && (
+              <div style={{
+                padding: '12px 14px',
+                background: 'rgba(147, 51, 234, 0.1)',
+                border: '1px solid rgba(147, 51, 234, 0.3)',
+                borderRadius: 10,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  a/R★ Oranı
+                </span>
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: 'rgb(196, 181, 253)',
+                  fontFamily: 'monospace'
+                }}>
+                  {koiData.koi_dor.toFixed(2)}
+                  {koiData.koi_dor_err1 && (
+                    <span style={{ fontSize: 10, opacity: 0.6, fontWeight: 400 }}>
+                      {' '}±{((koiData.koi_dor_err1 + Math.abs(koiData.koi_dor_err2 || 0))/2).toFixed(2)}
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+            
+            {koiData.koi_impact !== undefined && koiData.koi_impact !== null && (
+              <div style={{
+                padding: '12px 14px',
+                background: 'rgba(147, 51, 234, 0.1)',
+                border: '1px solid rgba(147, 51, 234, 0.3)',
+                borderRadius: 10,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Impact Parameter (b)
+                </span>
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: 'rgb(196, 181, 253)',
+                  fontFamily: 'monospace'
+                }}>
+                  {koiData.koi_impact.toFixed(3)}
+                  {koiData.koi_impact_err1 && (
+                    <span style={{ fontSize: 10, opacity: 0.6, fontWeight: 400 }}>
+                      {' '}±{((koiData.koi_impact_err1 + Math.abs(koiData.koi_impact_err2 || 0))/2).toFixed(3)}
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+            
+            {koiData.koi_incl && (
+              <div style={{
+                padding: '12px 14px',
+                background: 'rgba(147, 51, 234, 0.1)',
+                border: '1px solid rgba(147, 51, 234, 0.3)',
+                borderRadius: 10,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Eğim (i)
+                </span>
+                <span style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: 'rgb(196, 181, 253)',
+                  fontFamily: 'monospace'
+                }}>
+                  {koiData.koi_incl.toFixed(2)}°
+                </span>
               </div>
             )}
           </div>
