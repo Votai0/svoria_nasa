@@ -1,7 +1,7 @@
 import CameraControlsImpl from 'camera-controls'
 
 // Gezegene uçma fonksiyonu
-export const flyToPlanet = (controlsRef: React.RefObject<CameraControlsImpl>, distance: number) => {
+export const flyToPlanet = (controlsRef: React.RefObject<CameraControlsImpl | null>, distance: number) => {
   if (!controlsRef.current) return
   const angle = Math.PI / 4 // 45 derece
   const height = distance * 0.3
@@ -16,7 +16,7 @@ export const flyToPlanet = (controlsRef: React.RefObject<CameraControlsImpl>, di
 
 // Belirli bir yöne uçma fonksiyonu
 export const flyToDirection = (
-  controlsRef: React.RefObject<CameraControlsImpl>,
+  controlsRef: React.RefObject<CameraControlsImpl | null>,
   dir: [number, number, number],
   dist = 10
 ) => {
