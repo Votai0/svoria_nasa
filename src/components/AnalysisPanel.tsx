@@ -174,87 +174,57 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
       right: 16,
       top: 16,
       bottom: 16,
-      width: 'min(520px, calc(100vw - 440px))',
-      minWidth: 420,
-      maxWidth: 600,
-      maxHeight: '80%',
-      background: 'rgba(10, 10, 15, 0.92)',
-      backdropFilter: 'blur(24px)',
-      border: '1px solid rgba(255, 255, 255, 0.12)',
-      borderRadius: 16,
-      boxShadow: '0 12px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-      display: 'flex',
-      flexDirection: 'column',
+      width: 'min(480px, calc(100vw - 440px))',
+      minWidth: 400,
+      maxWidth: 520,
+      background: '#1a1a1a',
+      backdropFilter: 'blur(12px)',
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      borderRadius: 12,
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.7)',
       overflow: 'hidden',
-      zIndex: 100,
-      transition: 'all 0.3s ease'
+      zIndex: 100
     }}>
-      {/* Header */}
+      {/* Header Section */}
       <div style={{
-        padding: '14px 18px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%)'
+        padding: '20px 24px 16px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+        background: '#202020'
       }}>
         <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: 12
+          marginBottom: 16
         }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: 1.2,
-              color: 'rgba(147, 51, 234, 1)',
-              marginBottom: 4
-            }}>
-              EXOPLANET ANALİZİ
-            </div>
-            {selectedTarget && (
-              <div style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: 'white',
-                fontFamily: 'monospace',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}>
-                {selectedTarget.name}
-              </div>
-            )}
+          <div style={{
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: 0.8,
+            color: 'rgba(147, 151, 234, 0.9)',
+            marginBottom: 6,
+            textTransform: 'uppercase'
+          }}>
+            Exoplanet Analysis
           </div>
-          
-          {lightCurve && selectedPeriod && !prediction && (
-            <button
-              onClick={handlePredict}
-              disabled={isLoadingPrediction}
-              style={{
-                padding: '6px 12px',
-                background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.9), rgba(79, 70, 229, 0.9))',
-                border: '1px solid rgba(147, 51, 234, 0.5)',
-                borderRadius: 8,
-                color: 'white',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: isLoadingPrediction ? 'wait' : 'pointer',
-                opacity: isLoadingPrediction ? 0.6 : 1,
-                boxShadow: '0 2px 12px rgba(147, 51, 234, 0.4)',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              🎯 AI Tahmin
-            </button>
+          {selectedTarget && (
+            <div style={{
+              fontSize: 18,
+              fontWeight: 500,
+              color: '#ffffff',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {selectedTarget.name}
+            </div>
           )}
         </div>
         
-        {/* Tabs */}
+        {/* Navigation Tabs */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(5, 1fr)',
-          gap: 4,
-          marginTop: 10
+          gap: 6,
+          marginBottom: 12
         }}>
           {tabs.map(tab => (
             <button
@@ -263,79 +233,117 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
               disabled={tab.disabled}
               title={tab.label}
               style={{
-                padding: '8px 4px',
+                padding: '10px 8px',
                 background: activeTab === tab.id 
-                  ? 'rgba(147, 51, 234, 0.25)' 
-                  : 'rgba(255, 255, 255, 0.04)',
-                border: activeTab === tab.id
-                  ? '1px solid rgba(147, 51, 234, 0.4)'
-                  : '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: 8,
-                color: tab.disabled ? 'rgba(255, 255, 255, 0.25)' : 'white',
-                fontSize: 9,
-                fontWeight: 600,
+                  ? 'rgba(147, 151, 234, 0.15)' 
+                  : 'transparent',
+                border: 'none',
+                borderBottom: activeTab === tab.id
+                  ? '2px solid rgb(147, 151, 234)'
+                  : '2px solid transparent',
+                borderRadius: '4px 4px 0 0',
+                color: activeTab === tab.id 
+                  ? '#ffffff' 
+                  : tab.disabled 
+                    ? 'rgba(255, 255, 255, 0.3)' 
+                    : 'rgba(255, 255, 255, 0.6)',
+                fontSize: 20,
                 cursor: tab.disabled ? 'not-allowed' : 'pointer',
-                transition: 'all 0.15s',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 3,
+                transition: 'all 0.2s',
+                textAlign: 'center',
                 opacity: tab.disabled ? 0.4 : 1
               }}
             >
-              <span style={{ fontSize: 14 }}>{tab.icon}</span>
-              <span style={{ fontSize: 9, lineHeight: 1 }}>{tab.label}</span>
+              {tab.icon}
             </button>
           ))}
         </div>
-      </div>
-      
-      {/* Error Bar */}
-      {error && (
-        <div style={{
-          padding: '8px 14px',
-          background: 'rgba(239, 68, 68, 0.15)',
-          borderBottom: '1px solid rgba(239, 68, 68, 0.3)',
-          color: 'rgb(252, 165, 165)',
-          fontSize: 10,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6
-        }}>
-          <span style={{ fontSize: 12 }}>⚠️</span>
-          <span style={{ flex: 1, fontSize: 10 }}>{error}</span>
+
+        {/* Action Button */}
+        {lightCurve && selectedPeriod && !prediction && (
           <button
-            onClick={() => setError(null)}
+            onClick={handlePredict}
+            disabled={isLoadingPrediction}
             style={{
-              background: 'none',
+              width: '100%',
+              padding: '12px',
+              background: isLoadingPrediction 
+                ? 'rgba(147, 151, 234, 0.3)' 
+                : 'rgba(147, 151, 234, 0.9)',
               border: 'none',
-              color: 'rgb(252, 165, 165)',
-              cursor: 'pointer',
-              fontSize: 14,
-              padding: 0,
-              lineHeight: 1
+              borderRadius: 8,
+              color: 'white',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: isLoadingPrediction ? 'wait' : 'pointer',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 8px rgba(147, 151, 234, 0.3)',
+              letterSpacing: 0.3
             }}
           >
-            ×
+            {isLoadingPrediction ? 'Processing...' : '🎯 Run AI Prediction'}
           </button>
+        )}
+      </div>
+      
+      {/* Error Alert */}
+      {error && (
+        <div style={{
+          padding: '12px 24px',
+          background: 'rgba(239, 68, 68, 0.1)',
+          borderBottom: '1px solid rgba(239, 68, 68, 0.2)',
+          color: 'rgb(248, 180, 180)',
+          fontSize: 12
+        }}>
+          <div style={{
+            width: '100%'
+          }}>
+            <span style={{ marginRight: 8 }}>⚠️</span>
+            <span>{error}</span>
+            <button
+              onClick={() => setError(null)}
+              style={{
+                float: 'right',
+                background: 'none',
+                border: 'none',
+                color: 'rgb(248, 180, 180)',
+                cursor: 'pointer',
+                fontSize: 18,
+                padding: 0,
+                lineHeight: 1
+              }}
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
       
-      {/* Content */}
-      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+      {/* Main Content Area */}
+      <div style={{ 
+        height: 'calc(100% - 180px)',
+        overflow: 'hidden',
+        position: 'relative'
+      }}>
         {!selectedTarget ? (
           <div style={{
             height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 16,
-            color: 'rgba(255, 255, 255, 0.5)'
+            textAlign: 'center',
+            paddingTop: '25%'
           }}>
-            <div style={{ fontSize: 64 }}>🔭</div>
-            <div style={{ fontSize: 16, textAlign: 'center', maxWidth: 320 }}>
-              Bir exoplanet hedefi seçerek analize başlayın
+            <div style={{ 
+              fontSize: 72,
+              marginBottom: 20,
+              opacity: 0.3
+            }}>🔭</div>
+            <div style={{ 
+              fontSize: 15,
+              color: 'rgba(255, 255, 255, 0.5)',
+              maxWidth: 300,
+              margin: '0 auto',
+              lineHeight: 1.5
+            }}>
+              Select an exoplanet target to begin analysis
             </div>
           </div>
         ) : (
@@ -385,67 +393,81 @@ export default function AnalysisPanel({ selectedTarget }: Props) {
         )}
       </div>
       
-      {/* Progress Indicator */}
+      {/* Status Footer */}
       {selectedTarget && (
         <div style={{
-          padding: '8px 14px',
-          background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          gap: 6,
-          alignItems: 'center',
-          fontSize: 9,
-          fontFamily: 'monospace'
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '12px 24px',
+          background: '#202020',
+          borderTop: '1px solid rgba(255, 255, 255, 0.06)'
         }}>
           <div style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: lightCurve ? 'rgb(34, 197, 94)' : 'rgba(255, 255, 255, 0.25)',
-            boxShadow: lightCurve ? '0 0 6px rgba(34, 197, 94, 0.6)' : 'none'
-          }} />
-          <span style={{ color: lightCurve ? 'white' : 'rgba(255, 255, 255, 0.4)', fontSize: 9 }}>Data</span>
-          
-          <div style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: periodogram ? 'rgb(34, 197, 94)' : 'rgba(255, 255, 255, 0.25)',
-            boxShadow: periodogram ? '0 0 6px rgba(34, 197, 94, 0.6)' : 'none'
-          }} />
-          <span style={{ color: periodogram ? 'white' : 'rgba(255, 255, 255, 0.4)', fontSize: 9 }}>BLS</span>
-          
-          <div style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: phaseFolded ? 'rgb(34, 197, 94)' : 'rgba(255, 255, 255, 0.25)',
-            boxShadow: phaseFolded ? '0 0 6px rgba(34, 197, 94, 0.6)' : 'none'
-          }} />
-          <span style={{ color: phaseFolded ? 'white' : 'rgba(255, 255, 255, 0.4)', fontSize: 9 }}>Fold</span>
-          
-          <div style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: prediction ? 'rgb(34, 197, 94)' : 'rgba(255, 255, 255, 0.25)',
-            boxShadow: prediction ? '0 0 6px rgba(34, 197, 94, 0.6)' : 'none'
-          }} />
-          <span style={{ color: prediction ? 'white' : 'rgba(255, 255, 255, 0.4)', fontSize: 9 }}>AI</span>
-          
-          {prediction && (
-            <div style={{
-              marginLeft: 'auto',
-              padding: '3px 8px',
-              background: 'rgba(147, 51, 234, 0.25)',
-              borderRadius: 6,
-              color: 'rgb(196, 181, 253)',
-              fontWeight: 700,
-              fontSize: 9
-            }}>
-              {(prediction.probability * 100).toFixed(0)}%
-            </div>
-          )}
+            width: '100%',
+            fontSize: 11,
+            fontFamily: 'monospace',
+            color: 'rgba(255, 255, 255, 0.5)'
+          }}>
+            <span style={{
+              display: 'inline-block',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: lightCurve ? '#22c55e' : 'rgba(255, 255, 255, 0.2)',
+              marginRight: 6,
+              verticalAlign: 'middle'
+            }} />
+            <span style={{ marginRight: 16, color: lightCurve ? '#ffffff' : 'rgba(255, 255, 255, 0.4)' }}>Data</span>
+            
+            <span style={{
+              display: 'inline-block',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: periodogram ? '#22c55e' : 'rgba(255, 255, 255, 0.2)',
+              marginRight: 6,
+              verticalAlign: 'middle'
+            }} />
+            <span style={{ marginRight: 16, color: periodogram ? '#ffffff' : 'rgba(255, 255, 255, 0.4)' }}>BLS</span>
+            
+            <span style={{
+              display: 'inline-block',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: phaseFolded ? '#22c55e' : 'rgba(255, 255, 255, 0.2)',
+              marginRight: 6,
+              verticalAlign: 'middle'
+            }} />
+            <span style={{ marginRight: 16, color: phaseFolded ? '#ffffff' : 'rgba(255, 255, 255, 0.4)' }}>Fold</span>
+            
+            <span style={{
+              display: 'inline-block',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: prediction ? '#22c55e' : 'rgba(255, 255, 255, 0.2)',
+              marginRight: 6,
+              verticalAlign: 'middle'
+            }} />
+            <span style={{ color: prediction ? '#ffffff' : 'rgba(255, 255, 255, 0.4)' }}>AI</span>
+            
+            {prediction && (
+              <span style={{
+                float: 'right',
+                padding: '4px 10px',
+                background: 'rgba(147, 151, 234, 0.2)',
+                borderRadius: 4,
+                color: 'rgb(196, 181, 253)',
+                fontWeight: 600,
+                fontSize: 11
+              }}>
+                {(prediction.probability * 100).toFixed(0)}%
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>
