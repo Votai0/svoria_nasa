@@ -4,7 +4,7 @@ import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Moon as MoonType } from '../types'
 import Moon from './Moon'
-import { ONE_DAY_UNITS, ROTATION_SCALE } from '../constants/time'
+import { ROTATION_SCALE } from '../constants/time'
 
 // Planet bileşeni props tipi
 type PlanetProps = {
@@ -61,19 +61,24 @@ export default function Planet({
     if (groupRef.current && distance > 0) {
       // Yörünge hareketi: realPosition (yıl başı konumu) + yıl içindeki hareket
       const baseAngle = realPosition !== undefined ? realPosition : (startAngle || 0)
-      // currentTime yıl içindeki gün sayısı olarak çalışır (0-365 arası)
-      const angle = baseAngle + (currentTime / ONE_DAY_UNITS) * orbitSpeed * 365.25
+      // currentTime: 0-365.25 arası gün sayısı
+      // orbitSpeed = BASE_SPEED / orbital_period
+      // orbital_period: gezegenin bir tur için gereken Dünya yılı sayısı
+      // Dünya: period=1 → 365.25 günde tam tur (2π radyan)
+      // Mars: period=1.88 → 687 günde tam tur (2π radyan)
+      const orbitalPeriodInDays = 365.25 / (orbitSpeed * 100) // BASE_SPEED=0.01 → *100
+      const angle = baseAngle + (currentTime / orbitalPeriodInDays) * (2 * Math.PI)
       groupRef.current.position.x = Math.cos(angle) * distance
       groupRef.current.position.z = Math.sin(angle) * distance
 
       // Kendi ekseni dönüşü - gerçek rotasyon periyoduna göre
-      const daysElapsed = currentTime / ONE_DAY_UNITS
+      const daysElapsed = currentTime
       groupRef.current.rotation.y = (2 * Math.PI * daysElapsed * ROTATION_SCALE) / Math.abs(rotationPeriod)
     }
 
     // Bulutlar %20 daha hızlı dönsün (atmosfer etkisi)
     if (cloudsRef.current) {
-      const daysElapsed = currentTime / ONE_DAY_UNITS
+      const daysElapsed = currentTime
       cloudsRef.current.rotation.y = (2 * Math.PI * daysElapsed * ROTATION_SCALE * 1.2) / Math.abs(rotationPeriod)
     }
   })
@@ -84,7 +89,7 @@ export default function Planet({
     
     useFrame(() => {
       if (sunRef.current) {
-        const daysElapsed = currentTime / ONE_DAY_UNITS
+        const daysElapsed = currentTime
         sunRef.current.rotation.y = (2 * Math.PI * daysElapsed * ROTATION_SCALE) / rotationPeriod
       }
     })

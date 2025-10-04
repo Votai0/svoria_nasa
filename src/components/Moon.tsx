@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import type { Moon as MoonType } from '../types'
-import { ONE_DAY_UNITS, ROTATION_SCALE } from '../constants/time'
+import { ROTATION_SCALE } from '../constants/time'
 
 // Uydu bileşeni
 export default function Moon({ distance, size, color, orbitSpeed, rotationPeriod, startAngle, texture, currentTime }: MoonType & { currentTime: number }) {
@@ -14,12 +14,15 @@ export default function Moon({ distance, size, color, orbitSpeed, rotationPeriod
   useFrame(() => {
     if (moonRef.current) {
       // Yörünge hareketi
-      const angle = startAngle + currentTime * orbitSpeed
+      // orbitSpeed zaten doğru hesaplanmış (BASE_SPEED / period)
+      // Ay'ın yörünge periyodu: ~27.3 gün
+      const orbitalPeriodInDays = 365.25 / (orbitSpeed * 100)
+      const angle = startAngle + (currentTime / orbitalPeriodInDays) * (2 * Math.PI)
       moonRef.current.position.x = Math.cos(angle) * distance
       moonRef.current.position.z = Math.sin(angle) * distance
       
       // Kendi ekseni dönüşü - görsel amaçlı yavaşlatılmış
-      const daysElapsed = currentTime / ONE_DAY_UNITS
+      const daysElapsed = currentTime
       moonRef.current.rotation.y = (2 * Math.PI * daysElapsed * ROTATION_SCALE) / Math.abs(rotationPeriod)
     }
   })

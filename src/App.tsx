@@ -6,12 +6,12 @@ import type { TimeControl } from './types'
 import type { ExoplanetTarget } from './types/exoplanet'
 import SpaceBackground from './components/SpaceBackground'
 import SolarSystem from './components/SolarSystem'
-import TimeControlPanel from './components/TimeControlPanel'
 import SearchBar from './components/SearchBar'
 import AnalysisPanel from './components/AnalysisPanel'
 import SharePanel from './components/SharePanel'
 import DemoTargetsBar from './components/DemoTargetsBar'
 import SpeedControlPanel from './components/SpeedControlPanel'
+import TimeSlider from './components/TimeSlider'
 import { parseURLParams, findTargetById, updateURLParams } from './utils/urlParams'
 
 export default function App() {
@@ -100,6 +100,12 @@ export default function App() {
 
       {/* Sol alt: Hız Kontrol Paneli (her zaman görünür) */}
       <SpeedControlPanel 
+        timeControl={timeControl}
+        setTimeControl={setTimeControl}
+      />
+
+      {/* Sol alt sağ: Zaman Çizelgesi Slider (365 gün) */}
+      <TimeSlider 
         timeControl={timeControl}
         setTimeControl={setTimeControl}
       />
