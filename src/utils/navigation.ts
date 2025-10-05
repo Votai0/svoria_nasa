@@ -76,3 +76,28 @@ export const raDecToDir = (raHours: number, decDeg: number): [number, number, nu
   return [x, y, z]
 }
 
+// Kamerayı hareket ettirmeden sadece o yöne döndür
+export const lookAtDirection = (
+  controlsRef: React.RefObject<CameraControlsImpl | null>,
+  dir: [number, number, number],
+  dist = 1000
+) => {
+  if (!controlsRef.current) return
+  
+  // Kameranın mevcut pozisyonunu al
+  const camera = controlsRef.current.camera
+  const currentPos = camera.position
+  
+  // Hedef noktayı hesapla (mevcut pozisyondan yön vektörü boyunca uzak bir nokta)
+  const [dx, dy, dz] = dir
+  const len = Math.hypot(dx, dy, dz) || 1
+  const nx = dx / len, ny = dy / len, nz = dz / len
+  
+  const targetX = currentPos.x + nx * dist
+  const targetY = currentPos.y + ny * dist
+  const targetZ = currentPos.z + nz * dist
+  
+  // Sadece bakış açısını değiştir, pozisyonu değil
+  controlsRef.current.setTarget(targetX, targetY, targetZ, true)
+}
+

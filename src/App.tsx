@@ -12,11 +12,12 @@ import SpeedControlPanel from './components/SpeedControlPanel'
 import TimeSlider from './components/TimeSlider'
 import CameraDistanceDisplay, { CameraDistanceTracker } from './components/CameraDistanceDisplay'
 import { parseURLParams, findTargetById, updateURLParams } from './utils/urlParams'
-import { flyToPlanet } from './utils/navigation'
+import { flyToPlanet, lookAtDirection, raDecToDir } from './utils/navigation'
 import { calculateAllPlanetPositions } from './utils/astronomy'
 import { planets } from './constants/planets'
 import { useKOIPlanets, useKOIStatistics } from './hooks/useKOIData'
 import DataVerification from './components/DataVerification'
+import ExoplanetMarker from './components/ExoplanetMarker'
 
 export default function App() {
   const controlsRef = useRef<CameraControlsImpl | null>(null)
@@ -150,6 +151,21 @@ export default function App() {
     }
   }, [selectedPlanet])
 
+  // Exoplanet seçildiğinde kamerayı o yöne çevir (sadece hedef değiştiğinde)
+  const [lastFlyTarget, setLastFlyTarget] = useState<string | null>(null)
+  
+  useEffect(() => {
+    if (selectedTarget && controlsRef.current && lastFlyTarget !== selectedTarget.id) {
+      const direction = raDecToDir(selectedTarget.ra / 15, selectedTarget.dec) // RA: derece -> saat
+      lookAtDirection(controlsRef, direction, 1500) // Sadece bakış açısını değiştir
+      setLastFlyTarget(selectedTarget.id)
+    }
+    // Hedef kaldırıldığında sıfırla
+    if (!selectedTarget && lastFlyTarget !== null) {
+      setLastFlyTarget(null)
+    }
+  }, [selectedTarget, lastFlyTarget])
+
   return (
     <div style={{ 
       width: '100vw', 
@@ -267,6 +283,14 @@ export default function App() {
             timeControl={timeControl} 
             onDistanceChange={setCameraDistance}
           />
+          
+          {/* Seçili exoplanet marker'ı göster */}
+          {selectedTarget && (
+            <ExoplanetMarker 
+              target={selectedTarget} 
+              distance={1500}
+            />
+          )}
         </Suspense>
       </Canvas>
 

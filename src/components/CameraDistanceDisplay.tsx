@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 import type { TimeControl } from '../types'
@@ -55,6 +56,49 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
   isVisible: boolean
   onToggle: () => void
 }) {
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    setUploadStatus(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('filename', file.name)
+
+      const response = await fetch('/api/train', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      setUploadStatus('✅ Yüklendi!')
+      console.log('Train CSV uploaded:', result)
+      
+      // 2 saniye sonra mesajı temizle
+      setTimeout(() => setUploadStatus(null), 2000)
+    } catch (error) {
+      console.error('Upload error:', error)
+      setUploadStatus('❌ Hata!')
+      setTimeout(() => setUploadStatus(null), 3000)
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
   return (
     <>
       {/* Toggle Button */}
@@ -106,23 +150,85 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           opacity: isVisible ? 1 : 0,
-          pointerEvents: isVisible ? 'auto' : 'none'
+          pointerEvents: isVisible ? 'auto' : 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12
         }}
       >
-      <div style={{ color: '#4A90E2', marginBottom: '4px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-        Dünya'dan Uzaklık
+        <div>
+          <div style={{ color: '#4A90E2', marginBottom: '4px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Dünya'dan Uzaklık
+          </div>
+          <div style={{ fontSize: '18px', color: '#fff' }}>
+            {distance < 0.00001 
+              ? (distance * 9460730472580.8).toFixed(0) + ' km'
+              : distance < 0.001
+              ? (distance * 63241.077).toFixed(2) + ' AU'
+              : distance < 1
+              ? (distance * 63241.077).toFixed(1) + ' AU'
+              : distance.toFixed(3) + ' ışık yılı'
+            }
+          </div>
+        </div>
+
+        {/* CSV Upload Button */}
+        <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: 12 }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            style={{ display: 'none' }}
+            id="train-csv-upload"
+          />
+          <label
+            htmlFor="train-csv-upload"
+            style={{
+              display: 'inline-block',
+              padding: '8px 16px',
+              background: isUploading 
+                ? 'rgba(234, 179, 8, 0.2)' 
+                : 'rgba(99, 102, 241, 0.2)',
+              border: isUploading 
+                ? '1px solid rgba(234, 179, 8, 0.5)' 
+                : '1px solid rgba(99, 102, 241, 0.4)',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: isUploading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              color: isUploading ? 'rgb(253, 224, 71)' : 'rgb(165, 180, 252)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+            onMouseEnter={(e) => {
+              if (!isUploading) {
+                e.currentTarget.style.background = 'rgba(99, 102, 241, 0.3)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isUploading) {
+                e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'
+              }
+            }}
+          >
+            {isUploading ? '⏳ Yükleniyor...' : '📄 Add Train CSV'}
+          </label>
+          
+          {/* Upload Status */}
+          {uploadStatus && (
+            <div style={{
+              marginTop: 8,
+              fontSize: 11,
+              color: uploadStatus.includes('✅') ? 'rgb(134, 239, 172)' : 'rgb(248, 113, 113)',
+              fontWeight: 600
+            }}>
+              {uploadStatus}
+            </div>
+          )}
+        </div>
       </div>
-      <div style={{ fontSize: '18px', color: '#fff' }}>
-        {distance < 0.00001 
-          ? (distance * 9460730472580.8).toFixed(0) + ' km'
-          : distance < 0.001
-          ? (distance * 63241.077).toFixed(2) + ' AU'
-          : distance < 1
-          ? (distance * 63241.077).toFixed(1) + ' AU'
-          : distance.toFixed(3) + ' ışık yılı'
-        }
-      </div>
-    </div>
     </>
   )
 }
