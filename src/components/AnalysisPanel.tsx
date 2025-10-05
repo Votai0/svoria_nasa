@@ -63,6 +63,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     setIsLoadingLC(true)
     
     try {
+      console.log('🔄 Loading light curve for:', selectedTarget.id)
       // Generate light curve using KOI parameters
       const data = await fetchLightCurve(selectedTarget.id, dataType, undefined, selectedKOI)
       setLightCurve(data)
@@ -133,7 +134,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     } finally {
       setIsLoadingLC(false)
     }
-  }, [selectedTarget, selectedKOI, dataType])
+  }, [selectedTarget, selectedKOI, dataType]) // dataType dependency added!
   
   // 2. BLS analysis (referenced to KOI period)
   const handleRunBLS = async () => {
@@ -239,6 +240,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     const needsLoad = !lightCurve || lightCurve.targetId !== selectedTarget.id
     
     if (needsLoad) {
+      console.log('🔄 Target changed, loading new light curve...')
       // Reset first
       setLightCurve(null)
       setPeriodogram(null)
@@ -253,6 +255,24 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
       handleLoadLightCurve()
     }
   }, [selectedTarget, selectedKOI, isLoadingLC, lightCurve, handleLoadLightCurve])
+  
+  // Fix canvas rendering issue - programmatically switch data type to force re-render
+  useEffect(() => {
+    if (lightCurve && !isLoadingLC && dataType === 'PDCSAP') {
+      let timer2: number | undefined
+      // Briefly switch to SAP to trigger canvas render, then switch back
+      const timer1 = setTimeout(() => {
+        setDataType('SAP')
+        timer2 = setTimeout(() => {
+          setDataType('PDCSAP')
+        }, 10) as unknown as number
+      }, 50)
+      return () => {
+        clearTimeout(timer1)
+        if (timer2) clearTimeout(timer2)
+      }
+    }
+  }, [lightCurve, isLoadingLC])
   
   const tabs: { id: AnalysisTab; label: string; icon: string; disabled?: boolean }[] = [
     { id: 'lightcurve', label: 'Light Curve', icon: '📊' },
