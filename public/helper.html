@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  <title>Mission Helper Overlay - Beginners Guide</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --panel: #10131a;
+      --text: #f4f4f6;
+      --muted: #cfd0d6;
+      --brand1: #4c8bff;
+      --brand2: #2f6cf0;
+      --accent: #ffd166;
+      --good: #22c55e;
+      --bad: #ef4444;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+      color-scheme: dark;
+    }
+
+
+    html,
+    body {
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+
+    button {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      border-radius: 999px;
+      padding: 12px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+
+    .overlay.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+
+    .overlay__panel {
+      width: 75vw;
+      height: 75vh;
+      background: var(--panel);
+      border-radius: 20px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 32px 72px rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+
+    .overlay__panel h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+
+    .overlay__panel p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+
+    .overlay__scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+
+    .overlay__actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 20px;
+    }
+
+
+    h4 {
+      margin: 16px 0 8px;
+      font-size: 16px;
+      color: #e6e6ea;
+      opacity: 0.95;
+    }
+
+
+    .card {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+
+    .grid.cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+
+    @media (max-width: 860px) {
+      .grid.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    ul {
+      margin: 8px 0 0 18px;
+      color: var(--muted);
+    }
+
+
+    li {
+      margin: 4px 0;
+    }
+
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.9em;
+    }
+
+
+    .muted {
+      color: var(--muted);
+    }
+
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      display: inline-block;
+    }
+
+
+    .overlay__close {
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      color: #fff;
+    }
+
+
+    .overlay__close:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(47, 108, 240, 0.4);
+    }
+
+
+    .card figure {
+      margin: 0;
+    }
+
+
+    .card figure + figure {
+      margin-top: 16px;
+    }
+
+
+    @media (max-width: 720px) {
+      .overlay__panel {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class='overlay' id='overlay' aria-hidden='false' class='is-open'>
+    <div class='overlay__panel' role='dialog' aria-modal='true' aria-labelledby='title'>
+      <h2 id='title'>Beginners Guide</h2>
+      <div class='overlay__scroll' id='guidanceContent'>
+        <h3 id='what'>What is an exoplanet?</h3>
+        <div class='card' aria-describedby='what'>
+          <p>An <em>exoplanet</em> (a.k.a. <em>extrasolar planet</em>) is a planet that orbits a star <u>other than our Sun</u>.</p>
+          <p class='muted'>We've now confirmed thousands of them. They come in many types - <em>hot Jupiters</em> (giant, very close-in), <em>super-Earths</em> (rocky worlds bigger than Earth), and <em>mini-Neptunes</em> (puffy, sub-Neptune worlds) - showing that planetary systems are wildly diverse.</p>
+        </div>
+
+
+        <h3 id='how'>How are exoplanets found?</h3>
+        <div class='grid cols-2'>
+          <div class='card'>
+            <h4>Transit method</h4>
+            <ul>
+              <li><strong>Transit</strong> - the planet passes in front of its star and blocks a tiny bit of light; brightness dips in a repeating pattern.</li>
+            </ul>
+            <p class='muted'>Kepler and TESS lean heavily on transit detections because they can monitor thousands of stars at once and look for repeating dips.</p>
+          </div>
+          <div class='card'>
+            <h4>Quick vocabulary</h4>
+            <ul>
+              <li><strong>Flux</strong>: measured brightness of a star.</li>
+              <li><strong>Light curve</strong>: flux vs. time plot.</li>
+              <li><strong>Transit depth</strong>: how deep the dip is; roughly ≈ (planet radius / star radius)<sup>2</sup>.</li>
+              <li><strong>Period</strong>: time from one transit to the next.</li>
+              <li><strong>Duration</strong>: how long the transit lasts.</li>
+              <li><strong>Ingress / egress</strong>: the start and end parts of the dip.</li>
+            </ul>
+          </div>
+        </div>
+
+
+        <div class='card' aria-label='Transit method GIF (from Wikimedia Commons)'>
+          <h4>Transit method - GIF (from the interwebs)</h4>
+          <figure>
+            <img src='https://upload.wikimedia.org/wikipedia/commons/8/88/Exoplanet_transit_method.gif' alt='Animation of exoplanet transit with corresponding light curve' style='max-width:100%;height:auto;border-radius:12px;border:1px solid rgba(255,255,255,0.08)' />
+            <figcaption class='muted' style='margin-top:8px'>Credit: <a href='https://commons.wikimedia.org/wiki/File:Exoplanet_transit_method.gif' target='_blank' rel='noopener'>Alysa Obertas</a>, CC BY-SA 4.0 (Wikimedia Commons).</figcaption>
+          </figure>
+          <figure>
+            <img src='https://upload.wikimedia.org/wikipedia/commons/7/75/Transit_method.gif' alt='Two-planet transit animation with light curve dips' style='max-width:100%;height:auto;border-radius:12px;border:1px solid rgba(255,255,255,0.08)' />
+            <figcaption class='muted' style='margin-top:8px'>Credit: <a href='https://commons.wikimedia.org/wiki/File:Transit_method.gif' target='_blank' rel='noopener'>Aspolanski</a>, CC0 / Public Domain (Wikimedia Commons).</figcaption>
+          </figure>
+        </div>
+
+
+        <h3 id='tips'>How to read a light curve fast</h3>
+        <div class='grid cols-2'>
+          <div class='card'>
+            <h4>Planet-like signals</h4>
+            <ul>
+              <li>Evenly spaced, repeating dips (constant <strong>period</strong>).</li>
+              <li>Rounded "U" bottoms for small planets + quiet stars.</li>
+              <li>Depth consistent across transits (ignoring noise).</li>
+            </ul>
+          </div>
+          <div class='card'>
+            <h4>Common false positives</h4>
+            <ul>
+              <li><strong>V-shaped</strong> dips (can be grazing eclipsing binaries).</li>
+              <li><strong>Odd-even</strong> depth differences (binary stars).</li>
+              <li>Dips only in some sectors/cameras (systematics).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class='overlay__actions'>
+        <button class='overlay__close' id='closeOverlay'>Back to App</button>
+      </div>
+    </div>
+  </section>
+
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    const closeButton = document.getElementById('closeOverlay');
+
+    // Auto-open overlay on page load with smooth animation
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        overlay.classList.add('is-open');
+      }, 100);
+    });
+
+    // Close button redirects to main app
+    const closeOverlay = () => {
+      overlay.classList.remove('is-open');
+      setTimeout(() => {
+        window.close();
+        // If window.close() doesn't work (not opened by script), redirect to main page
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 100);
+      }, 300);
+    };
+
+    closeButton.addEventListener('click', closeOverlay);
+    
+    // Close on backdrop click
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) closeOverlay();
+    });
+    
+    // Close on ESC key
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && overlay.classList.contains('is-open')) closeOverlay();
+    });
+  </script>
+</body>
+</html>

@@ -409,6 +409,56 @@ export default function App() {
         onToggle={() => togglePanel('distance')}
       />
       
+      {/* Helper Button - Bottom Right */}
+      <a
+        href="/helper.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          width: 48,
+          height: 48,
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #4c8bff, #2f6cf0)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          zIndex: 1000,
+          boxShadow: '0 4px 12px rgba(47, 108, 240, 0.3)',
+          backdropFilter: 'blur(10px)',
+          textDecoration: 'none',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1) translateY(-2px)'
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(47, 108, 240, 0.5)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1) translateY(0)'
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(47, 108, 240, 0.3)'
+        }}
+        title="Beginners Guide - Learn about exoplanets"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      </a>
+      
       {/* Data Verification - DEV MODE ONLY */}
       {/* {import.meta.env.DEV && <DataVerification />} */}
       
