@@ -94,7 +94,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
         ctx.lineTo(x, y + errY)
         ctx.stroke()
         
-        // Nokta
+        // Point
         ctx.fillStyle = 'rgba(147, 51, 234, 0.9)'
         ctx.beginPath()
         ctx.arc(x, y, 3, 0, Math.PI * 2)
@@ -112,7 +112,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
     ctx.stroke()
     ctx.setLineDash([])
     
-    // Eksen etiketleri
+    // Axis labels
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
     ctx.font = '12px sans-serif'
     ctx.textAlign = 'center'

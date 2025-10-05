@@ -123,7 +123,7 @@ export default function ModelPredictionPanel({ prediction, isLoading, onPredict 
               color: 'rgba(255, 255, 255, 0.7)',
               textAlign: 'center'
             }}>
-              Gezegen Adayı Olasılığı
+              Planet Candidate Probability
             </div>
             
             {/* Confidence Bar */}

@@ -29,12 +29,12 @@ export default function DataVerification() {
           include_actual: true 
         })
         
-        logs.push(`✅ Backend'den veri geldi! (${planets.length} gezegen)`)
+        logs.push(`✅ Data received from backend! (${planets.length} planets)`)
         logs.push('')
         
         if (planets.length > 0) {
           const p = planets[0]
-          logs.push(`📦 Ilk gezegen: ${p.kepoi_name || p.kepid}`)
+          logs.push(`📦 First planet: ${p.kepoi_name || p.kepid}`)
           logs.push(`   kepid: ${p.kepid}`)
           logs.push(`   kepler_name: ${p.kepler_name}`)
           logs.push('')
@@ -73,18 +73,18 @@ export default function DataVerification() {
           logs.push(`   koi_model_snr: ${p.koi_model_snr}`)
           logs.push('')
           
-          // TEST 4: Detaylı veri
-          logs.push('🔬 TEST 4: Detayli Gezegen Verisi')
+          // TEST 4: Detailed data
+          logs.push('🔬 TEST 4: Detailed Planet Data')
           logs.push('-'.repeat(80))
           const detailed = await fetchKOIPlanetById(p.kepid, true, true)
           
-          // Tüm alanları listele
+          // List all fields
           const allFields = Object.keys(detailed).filter(k => 
             (detailed as any)[k] !== null && (detailed as any)[k] !== undefined
           )
-          logs.push(`   Toplam ${allFields.length} alan mevcut`)
+          logs.push(`   Total ${allFields.length} fields available`)
           
-          // Önemli alanları kontrol et
+          // Check important fields
           const importantFields = [
             'prediction_probability',
             'probabilities',
@@ -94,45 +94,45 @@ export default function DataVerification() {
           ]
           
           logs.push('')
-          logs.push('   Kritik alanlar:')
+          logs.push('   Critical fields:')
           importantFields.forEach(field => {
             const value = (detailed as any)[field]
             if (value !== undefined && value !== null) {
               logs.push(`   ✅ ${field}: ${JSON.stringify(value)}`)
             } else {
-              logs.push(`   ❌ ${field}: YOK`)
+              logs.push(`   ❌ ${field}: MISSING`)
             }
           })
         }
         
       } catch (error) {
-        logs.push(`❌ HATA: ${(error as Error).message}`)
+        logs.push(`❌ ERROR: ${(error as Error).message}`)
       }
       
       logs.push('')
       logs.push('='.repeat(80))
-      logs.push('🔍 SONUC')
+      logs.push('🔍 RESULT')
       logs.push('='.repeat(80))
       logs.push('')
-      logs.push('Backend\'den GELEN:')
+      logs.push('RECEIVED from Backend:')
       logs.push('  ✅ KOI parametreleri (period, depth, duration)')
       logs.push('  ✅ koi_pdisposition (CONFIRMED/FALSE_POSITIVE/CANDIDATE)')
-      logs.push('  ✅ koi_score (0-1 arasi)')
+      logs.push('  ✅ koi_score (0-1 range)')
       logs.push('')
-      logs.push('Frontend\'de MOCK:')
-      logs.push('  ❌ Light Curve - Sentetik uretiliyor!')
-      logs.push('  ❌ Periodogram - Sentetik BLS!')
-      logs.push('  ❌ Phase-Folded - Sentetik!')
+      logs.push('MOCK in Frontend:')
+      logs.push('  ❌ Light Curve - Synthetic generated!')
+      logs.push('  ❌ Periodogram - Synthetic BLS!')
+      logs.push('  ❌ Phase-Folded - Synthetic!')
       logs.push('')
-      logs.push('SORUNLU:')
-      logs.push('  ⚠️  predictPlanetCandidate() backend probability kullanmiyor!')
-      logs.push('  ⚠️  fetchLightCurve() gercek light curve degil!')
+      logs.push('PROBLEMATIC:')
+      logs.push('  ⚠️  predictPlanetCandidate() not using backend probability!')
+      logs.push('  ⚠️  fetchLightCurve() not real light curve!')
       logs.push('')
       logs.push('='.repeat(80))
       
       setResults(logs)
       
-      // Console'a da yazdır
+      // Print to console as well
       logs.forEach(log => console.log(log))
     }
     

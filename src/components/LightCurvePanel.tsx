@@ -47,7 +47,7 @@ export default function LightCurvePanel({
     
     if (visiblePoints.length === 0) return
     
-    // Eksenleri hesapla
+    // Calculate axes
     const padding = 40
     const width = rect.width - padding * 2
     const height = rect.height - padding * 2
@@ -84,23 +84,23 @@ export default function LightCurvePanel({
       ctx.fillText(flux.toFixed(4), padding - 10, y + 4)
     }
     
-    // Veri noktalarını çiz
+    // Draw data points
     visiblePoints.forEach((point) => {
       const x = padding + ((point.time - minTime) / timeRange) * width
       const y = padding + height - ((point.flux - minFlux) / fluxRange) * height
       
-      // Kalite bayraklarını göster
+      // Show quality flags
       if (showQualityFlags && point.quality > 0) {
         ctx.fillStyle = 'rgba(239, 68, 68, 0.5)'
         ctx.fillRect(x - 1, padding, 2, height)
       }
       
-      // Nokta çiz
+      // Draw point
       ctx.fillStyle = point.quality > 0 ? 'rgba(239, 68, 68, 0.6)' : 'rgba(147, 51, 234, 0.6)'
       ctx.fillRect(x - 0.5, y - 0.5, 1, 1)
     })
     
-    // Eksen etiketleri
+    // Axis labels
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
     ctx.font = '12px sans-serif'
     ctx.textAlign = 'center'

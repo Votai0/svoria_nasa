@@ -84,7 +84,7 @@ export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, sele
         'rgba(251, 191, 36, 0.8)'
       ]
       
-      // Dikey çizgi
+      // Vertical line
       ctx.strokeStyle = isSelected ? 'rgba(255, 255, 255, 0.8)' : colors[idx]
       ctx.lineWidth = isSelected ? 3 : 2
       ctx.setLineDash(isSelected ? [] : [5, 5])
@@ -94,7 +94,7 @@ export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, sele
       ctx.stroke()
       ctx.setLineDash([])
       
-      // Nokta
+      // Point
       ctx.fillStyle = isSelected ? 'white' : colors[idx]
       ctx.beginPath()
       ctx.arc(x, y, isSelected ? 6 : 4, 0, Math.PI * 2)
@@ -107,7 +107,7 @@ export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, sele
       ctx.fillText(`#${idx + 1}`, x, padding - 10)
     })
     
-    // Eksen etiketleri
+    // Axis labels
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
     ctx.font = '12px sans-serif'
     ctx.textAlign = 'center'

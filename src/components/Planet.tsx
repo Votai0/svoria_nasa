@@ -29,7 +29,7 @@ type PlanetProps = {
   onClick?: () => void // Called when planet is clicked
 }
 
-// Planet bileşeni
+// Planet component
 export default function Planet({
   distance,
   size,
@@ -61,9 +61,9 @@ export default function Planet({
   useFrame(() => {
     if (groupRef.current && distance > 0) {
       // Orbital motion: Continuous position calculation (no jumps at year transitions)
-      // orbital_period: gezegenin bir tur için gereken Dünya yılı sayısı
-      // Dünya: period=1 → 365.25 günde tam tur (2π radyan)
-      // Mars: period=1.88 → 687 günde tam tur (2π radyan)
+      // orbital_period: number of Earth years required for one orbit
+      // Earth: period=1 → full orbit in 365.25 days (2π radians)
+      // Mars: period=1.88 → full orbit in 687 days (2π radians)
       const orbitalPeriodInDays = 365.25 / (orbitSpeed * 100) // BASE_SPEED=0.01 → *100
       
       // Use starting angle and add continuous motion
@@ -85,7 +85,7 @@ export default function Planet({
   })
 
   if (distance === 0) {
-    // Güneş - merkezde, ışık saçan
+    // Sun - at center, emitting light
     const sunRef = useRef<any>(null)
     
     useFrame(() => {
@@ -119,15 +119,15 @@ export default function Planet({
 
   return (
     <group>
-      {/* Yörünge çizgisi */}
+      {/* Orbit line */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <ringGeometry args={[distance - 0.05, distance + 0.05, 64]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.1} />
       </mesh>
 
-      {/* Gezegen ve halkaları bir arada */}
+      {/* Planet and rings together */}
       <group ref={groupRef}>
-        {/* Gezegen */}
+        {/* Planet */}
         <mesh
           onClick={(e) => {
             e.stopPropagation()

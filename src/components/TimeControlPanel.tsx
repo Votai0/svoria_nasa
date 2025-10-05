@@ -3,7 +3,7 @@ import { ONE_DAY_UNITS, ONE_YEAR_UNITS } from '../constants/time'
 import { formatFullDate } from '../utils/time'
 import YearSelector from './YearSelector'
 
-// Zaman Kontrol Paneli bileşeni
+// Time Control Panel component
 export default function TimeControlPanel({ timeControl, setTimeControl }: {
   timeControl: TimeControl
   setTimeControl: React.Dispatch<React.SetStateAction<TimeControl>>
@@ -80,7 +80,7 @@ export default function TimeControlPanel({ timeControl, setTimeControl }: {
       {/* Year Selector */}
       <YearSelector timeControl={timeControl} setTimeControl={setTimeControl} />
 
-      {/* Zaman Çizelgesi (Timeline) */}
+      {/* Timeline */}
       <div style={{ marginBottom: 12 }}>
         <div style={{
           display: 'flex',
@@ -88,7 +88,7 @@ export default function TimeControlPanel({ timeControl, setTimeControl }: {
           alignItems: 'center',
           marginBottom: 8
         }}>
-          <span style={{ color: '#aaa', fontSize: 12 }}>📅 Tarih</span>
+          <span style={{ color: '#aaa', fontSize: 12 }}>📅 Date</span>
           <span style={{
             background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
             padding: '4px 12px',
@@ -375,57 +375,10 @@ export default function TimeControlPanel({ timeControl, setTimeControl }: {
           }
           .speed-slider::-moz-range-thumb:hover {
             transform: scale(1.2);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.7);
-          }
         `}</style>
       </div>
 
-      {/* ESKİ HIZ PRESET BUTONLARI - KALDIRILDI (SpeedControlPanel'de) - GİZLENDİ */}
-      <div style={{ display: 'none' }}>
-        {[
-          { label: '0.5x', value: 0.5 },
-          { label: '1x', value: 1 },
-          { label: '10x', value: 10 },
-          { label: '1 day', value: 50 },
-          { label: '1 month', value: 200 }
-        ].map((preset) => (
-          <button
-            key={preset.value}
-            onClick={() => setTimeControl(prev => ({ ...prev, speed: preset.value }))}
-            style={{
-              padding: '6px 8px',
-              background: timeControl.speed === preset.value
-                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                : 'rgba(255, 255, 255, 0.1)',
-              border: timeControl.speed === preset.value
-                ? '1px solid rgba(102, 126, 234, 0.6)'
-                : '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: 6,
-              color: '#fff',
-              fontSize: 10,
-              cursor: 'pointer',
-              fontWeight: timeControl.speed === preset.value ? 700 : 400,
-              transition: 'all 0.2s',
-              boxShadow: timeControl.speed === preset.value
-                ? '0 2px 8px rgba(102, 126, 234, 0.3)'
-                : 'none',
-              whiteSpace: 'nowrap'
-            }}
-            onMouseEnter={(e) => {
-              if (timeControl.speed !== preset.value) {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (timeControl.speed !== preset.value) {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            {preset.label}
-          </button>
-        ))}
-      </div>
+      {/* OLD SPEED PRESET BUTTONS - REMOVED (now in SpeedControlPanel) - HIDDEN */}
     </div>
   )
 }

@@ -5,7 +5,7 @@ import Planet from './Planet'
 import TimeUpdater from './TimeUpdater'
 import { calculateAllPlanetPositions } from '../utils/astronomy'
 
-// Güneş Sistemi bileşeni
+// Solar System component
 export default function SolarSystem({ timeControl, setTimeControl, onPlanetClick }: {
   timeControl: TimeControl
   setTimeControl: React.Dispatch<React.SetStateAction<TimeControl>>
