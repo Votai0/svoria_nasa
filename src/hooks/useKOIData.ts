@@ -53,7 +53,8 @@ export function useKOIPlanets(params?: {
         
         // First batch arrived - user can use it!
         if (isFirstBatch) {
-          setIsLoadingMore(true)
+          setLoading(false) // İlk batch geldi - loading tamamlandı!
+          setIsLoadingMore(true) // Arka planda devam ediyor
           isFirstBatch = false
           console.log('✅ First batch ready - search available!')
         }
