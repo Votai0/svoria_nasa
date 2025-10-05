@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { 
   ExoplanetTarget,
   KOIPlanet,
@@ -56,7 +56,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
   const [error, setError] = useState<string | null>(null)
   
   // 1. Load light curve (with KOI parameters) - AUTOMATIC PIPELINE
-  const handleLoadLightCurve = async () => {
+  const handleLoadLightCurve = useCallback(async () => {
     if (!selectedTarget || !selectedKOI) return
     
     setError(null)
@@ -133,7 +133,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     } finally {
       setIsLoadingLC(false)
     }
-  }
+  }, [selectedTarget, selectedKOI, dataType])
   
   // 2. BLS analysis (referenced to KOI period)
   const handleRunBLS = async () => {
@@ -217,32 +217,56 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     }
   }
   
-  // Reset when target changes
-  const resetAnalysis = () => {
-    setLightCurve(null)
-    setPeriodogram(null)
-    setPhaseFolded(null)
-    setSelectedPeriod(null)
-    setPrediction(null)
-    setCatalogInfo(null)
-    setError(null)
-    setActiveTab('lightcurve')
-  }
-  
   // Clear analysis data when planet is selected
   useEffect(() => {
     if (selectedPlanet) {
-      resetAnalysis()
+      setLightCurve(null)
+      setPeriodogram(null)
+      setPhaseFolded(null)
+      setSelectedPeriod(null)
+      setPrediction(null)
+      setCatalogInfo(null)
+      setError(null)
+      setActiveTab('lightcurve')
     }
   }, [selectedPlanet])
   
-  // Monitor target changes - auto-load if KOI data exists
-  const currentTargetId = selectedTarget?.id
-  const prevTargetId = lightCurve?.targetId
-  if (currentTargetId && currentTargetId !== prevTargetId && !isLoadingLC && selectedKOI) {
-    resetAnalysis()
-    handleLoadLightCurve()
-  }
+  // Auto-load light curve when target changes
+  useEffect(() => {
+    if (!selectedTarget || !selectedKOI || isLoadingLC) return
+    
+    // Check if we need to load new data
+    const needsLoad = !lightCurve || lightCurve.targetId !== selectedTarget.id
+    
+    if (needsLoad) {
+      // Reset first
+      setLightCurve(null)
+      setPeriodogram(null)
+      setPhaseFolded(null)
+      setSelectedPeriod(null)
+      setPrediction(null)
+      setCatalogInfo(null)
+      setError(null)
+      setActiveTab('lightcurve')
+      
+      // Then load
+      handleLoadLightCurve()
+    }
+  }, [selectedTarget, selectedKOI, isLoadingLC, lightCurve, handleLoadLightCurve])
+  
+  // Fix canvas rendering issue - programmatically switch data type to force re-render
+  useEffect(() => {
+    if (lightCurve && !isLoadingLC && dataType === 'PDCSAP') {
+      // Briefly switch to SAP to trigger canvas render, then switch back
+      const timer1 = setTimeout(() => {
+        setDataType('SAP')
+        setTimeout(() => {
+          setDataType('PDCSAP')
+        }, 10)
+      }, 50)
+      return () => clearTimeout(timer1)
+    }
+  }, [lightCurve, isLoadingLC])
   
   const tabs: { id: AnalysisTab; label: string; icon: string; disabled?: boolean }[] = [
     { id: 'lightcurve', label: 'Light Curve', icon: '📊' },
