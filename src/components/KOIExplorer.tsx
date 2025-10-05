@@ -13,7 +13,6 @@ export default function KOIExplorer() {
   
   // Fetch planets with filtering
   const { planets, loading: planetsLoading, error: planetsError } = useKOIPlanets({
-    limit: 50,
     disposition: filterDisposition === 'ALL' ? undefined : filterDisposition,
     include_probabilities: true
   })

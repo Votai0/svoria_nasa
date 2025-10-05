@@ -32,11 +32,12 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const hour = parseFloat(e.target.value)
-    const newTime = hour / 24
-    setTimeControl(prev => ({ 
-      ...prev, 
-      currentTime: Math.floor(prev.currentTime / 365.25) * 365.25 + newTime 
-    }))
+    const dayOfYear = hour / 24
+    setTimeControl(prev => {
+      const yearsElapsed = Math.floor(prev.currentTime / 365.25)
+      const newTime = (yearsElapsed * 365.25) + dayOfYear
+      return { ...prev, currentTime: newTime }
+    })
   }
 
   const handleDayInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,11 +49,12 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
     if (e.key === 'Enter') {
       const day = parseInt(dayInputValue) || 1
       const clampedDay = Math.max(1, Math.min(365, day)) - 1
-      const newTime = clampedDay + (currentHourOfDay / 24)
-      setTimeControl(prev => ({ 
-        ...prev, 
-        currentTime: newTime 
-      }))
+      const dayOfYear = clampedDay + (currentHourOfDay / 24)
+      setTimeControl(prev => {
+        const yearsElapsed = Math.floor(prev.currentTime / 365.25)
+        const newTime = (yearsElapsed * 365.25) + dayOfYear
+        return { ...prev, currentTime: newTime }
+      })
       setDayInputValue((clampedDay + 1).toString())
     }
   }
@@ -71,11 +73,12 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
     if (e.key === 'Enter') {
       const hour = parseInt(hourInputValue) || 0
       const clampedHour = Math.max(0, Math.min(23, hour))
-      const newTime = currentDay + (clampedHour / 24)
-      setTimeControl(prev => ({ 
-        ...prev, 
-        currentTime: newTime 
-      }))
+      const dayOfYear = currentDay + (clampedHour / 24)
+      setTimeControl(prev => {
+        const yearsElapsed = Math.floor(prev.currentTime / 365.25)
+        const newTime = (yearsElapsed * 365.25) + dayOfYear
+        return { ...prev, currentTime: newTime }
+      })
       setHourInputValue(clampedHour.toString())
     }
   }

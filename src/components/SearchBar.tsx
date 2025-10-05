@@ -4,11 +4,12 @@ import { planets } from '../constants/planets'
 import { flyToPlanet } from '../utils/navigation'
 import { calculateAllPlanetPositions } from '../utils/astronomy'
 import type { ExoplanetTarget } from '../types/exoplanet'
-import type { TimeControl } from '../types'
+import type { TimeControl, Planet } from '../types'
 
 export default function SearchBar({ 
   controlsRef,
   onTargetSelect,
+  onPlanetSelect,
   timeControl,
   isVisible,
   onToggle,
@@ -16,7 +17,8 @@ export default function SearchBar({
   koiLoading = false
 }: {
   controlsRef: React.RefObject<CameraControlsImpl | null>
-  onTargetSelect?: (target: ExoplanetTarget) => void
+  onTargetSelect?: (target: ExoplanetTarget | null) => void
+  onPlanetSelect?: (planet: Planet) => void
   timeControl: TimeControl
   isVisible: boolean
   onToggle: () => void
@@ -69,6 +71,10 @@ export default function SearchBar({
     
     const realPosition = referencePositions[planet.name]
     flyToPlanet(controlsRef, planet, timeControl.currentTime, realPosition)
+    
+    // Gezegen seçildiğinde exoplanet state'ini temizle ve gezegen bilgisini göster
+    onTargetSelect?.(null)
+    onPlanetSelect?.(planet)
     
     setSearchQuery('')
     setIsSearchExpanded(false)

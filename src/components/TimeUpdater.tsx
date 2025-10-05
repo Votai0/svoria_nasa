@@ -10,10 +10,19 @@ export default function TimeUpdater({ timeControl, setTimeControl }: {
     if (!timeControl.isPaused) {
       setTimeControl(prev => {
         const newTime = prev.currentTime + delta * prev.speed
+        
+        // Yıl hesapla (gösterim için)
+        // currentTime sürekli artacak, yılı sadece görüntüleme için hesaplıyoruz
+        const DAYS_IN_YEAR = 365.25
+        const startDayOfYear = 277 // 4 Ekim (başlangıç günü)
+        const totalDaysSinceStart = newTime - startDayOfYear
+        const yearsSinceStart = Math.floor(totalDaysSinceStart / DAYS_IN_YEAR)
+        const newYear = 2025 + yearsSinceStart
 
         return {
           ...prev,
-          currentTime: newTime
+          currentTime: newTime,
+          year: newYear
         }
       })
     }

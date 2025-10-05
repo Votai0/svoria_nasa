@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { 
   ExoplanetTarget,
   KOIPlanet,
@@ -229,6 +229,13 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     setActiveTab('lightcurve')
   }
   
+  // Gezegen seçildiğinde analiz verilerini temizle
+  useEffect(() => {
+    if (selectedPlanet) {
+      resetAnalysis()
+    }
+  }, [selectedPlanet])
+  
   // Hedef değişimini izle - KOI verisi varsa otomatik yükle
   const currentTargetId = selectedTarget?.id
   const prevTargetId = lightCurve?.targetId
@@ -294,116 +301,139 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
         opacity: isVisible ? 1 : 0,
         pointerEvents: isVisible ? 'auto' : 'none'
       }}>
-      {/* Header Section */}
-      <div style={{
-        padding: '20px 24px 16px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-        background: '#202020'
-      }}>
+      {/* Header Section - Sadece exoplanet seçiliyken göster */}
+      {!selectedPlanet && (
         <div style={{
-          marginBottom: 16
+          padding: '20px 24px 16px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          background: '#202020'
         }}>
           <div style={{
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: 0.8,
-            color: 'rgba(147, 151, 234, 0.9)',
-            marginBottom: 6,
-            textTransform: 'uppercase'
+            marginBottom: 16
           }}>
-            Exoplanet Analysis
-          </div>
-          {selectedTarget && (
             <div style={{
-              fontSize: 18,
+              fontSize: 11,
               fontWeight: 500,
-              color: '#ffffff',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              letterSpacing: 0.8,
+              color: 'rgba(147, 151, 234, 0.9)',
+              marginBottom: 6,
+              textTransform: 'uppercase'
             }}>
-              {selectedTarget.name}
+              Exoplanet Analysis
             </div>
-          )}
-        </div>
-        
-        {/* Navigation Tabs */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
-          gap: 6,
-          marginBottom: 12
-        }}>
-          {tabs.map(tab => (
+            {selectedTarget && (
+              <div style={{
+                fontSize: 18,
+                fontWeight: 500,
+                color: '#ffffff',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>
+                {selectedTarget.name}
+              </div>
+            )}
+          </div>
+          
+          {/* Navigation Tabs */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: 6,
+            marginBottom: 12,
+            alignItems: 'end'
+          }}>
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => !tab.disabled && setActiveTab(tab.id)}
+                disabled={tab.disabled}
+                title={tab.label}
+                style={{
+                  padding: '8px 4px',
+                  background: activeTab === tab.id 
+                    ? 'rgba(147, 151, 234, 0.15)' 
+                    : 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === tab.id
+                    ? '2px solid rgb(147, 151, 234)'
+                    : '2px solid transparent',
+                  borderRadius: '4px 4px 0 0',
+                  color: activeTab === tab.id 
+                    ? '#ffffff' 
+                    : tab.disabled 
+                      ? 'rgba(255, 255, 255, 0.3)' 
+                      : 'rgba(255, 255, 255, 0.6)',
+                  cursor: tab.disabled ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  textAlign: 'center',
+                  opacity: tab.disabled ? 0.4 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  gap: 4,
+                  height: 62
+                }}
+              >
+                <span style={{ 
+                  fontSize: 18,
+                  lineHeight: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: 22,
+                  width: '100%'
+                }}>
+                  {tab.icon}
+                </span>
+                <span style={{ 
+                  fontSize: 9, 
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  textAlign: 'center',
+                  display: 'block',
+                  height: 20,
+                  width: '100%',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  paddingTop: 2
+                }}>
+                  {tab.label}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Action Button */}
+          {lightCurve && selectedPeriod && !prediction && (
             <button
-              key={tab.id}
-              onClick={() => !tab.disabled && setActiveTab(tab.id)}
-              disabled={tab.disabled}
-              title={tab.label}
+              onClick={handlePredict}
+              disabled={isLoadingPrediction}
               style={{
-                padding: '8px 4px',
-                background: activeTab === tab.id 
-                  ? 'rgba(147, 151, 234, 0.15)' 
-                  : 'transparent',
+                width: '100%',
+                padding: '12px',
+                background: isLoadingPrediction 
+                  ? 'rgba(147, 151, 234, 0.3)' 
+                  : 'rgba(147, 151, 234, 0.9)',
                 border: 'none',
-                borderBottom: activeTab === tab.id
-                  ? '2px solid rgb(147, 151, 234)'
-                  : '2px solid transparent',
-                borderRadius: '4px 4px 0 0',
-                color: activeTab === tab.id 
-                  ? '#ffffff' 
-                  : tab.disabled 
-                    ? 'rgba(255, 255, 255, 0.3)' 
-                    : 'rgba(255, 255, 255, 0.6)',
-                cursor: tab.disabled ? 'not-allowed' : 'pointer',
+                borderRadius: 8,
+                color: 'white',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: isLoadingPrediction ? 'wait' : 'pointer',
                 transition: 'all 0.2s',
-                textAlign: 'center',
-                opacity: tab.disabled ? 0.4 : 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 4
+                boxShadow: '0 2px 8px rgba(147, 151, 234, 0.3)',
+                letterSpacing: 0.3
               }}
             >
-              <span style={{ fontSize: 18 }}>{tab.icon}</span>
-              <span style={{ 
-                fontSize: 9, 
-                fontWeight: 600,
-                lineHeight: 1.1
-              }}>
-                {tab.label}
-              </span>
+              {isLoadingPrediction ? 'Processing...' : '🎯 Run AI Prediction'}
             </button>
-          ))}
+          )}
         </div>
-
-        {/* Action Button */}
-        {lightCurve && selectedPeriod && !prediction && (
-          <button
-            onClick={handlePredict}
-            disabled={isLoadingPrediction}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: isLoadingPrediction 
-                ? 'rgba(147, 151, 234, 0.3)' 
-                : 'rgba(147, 151, 234, 0.9)',
-              border: 'none',
-              borderRadius: 8,
-              color: 'white',
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: isLoadingPrediction ? 'wait' : 'pointer',
-              transition: 'all 0.2s',
-              boxShadow: '0 2px 8px rgba(147, 151, 234, 0.3)',
-              letterSpacing: 0.3
-            }}
-          >
-            {isLoadingPrediction ? 'Processing...' : '🎯 Run AI Prediction'}
-          </button>
-        )}
-      </div>
+      )}
       
       {/* Error Alert */}
       {error && (
@@ -440,7 +470,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
       
       {/* Main Content Area */}
       <div style={{ 
-        height: 'calc(100% - 180px)',
+        height: selectedPlanet ? '100%' : 'calc(100% - 180px)',
         overflow: 'hidden',
         position: 'relative'
       }}>

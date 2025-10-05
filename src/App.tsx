@@ -16,7 +16,6 @@ import { flyToPlanet, lookAtDirection, raDecToDir } from './utils/navigation'
 import { calculateAllPlanetPositions } from './utils/astronomy'
 import { planets } from './constants/planets'
 import { useKOIPlanets, useKOIStatistics } from './hooks/useKOIData'
-import DataVerification from './components/DataVerification'
 import ExoplanetMarker from './components/ExoplanetMarker'
 
 export default function App() {
@@ -78,6 +77,9 @@ export default function App() {
       console.error('❌ KOI verileri yüklenemedi:', koiError.message)
     }
   }, [koiPlanets, koiStats, koiError])
+  
+  // KOI status popup görünürlük kontrolü
+  const [koiStatusDismissed, setKoiStatusDismissed] = useState(false)
   
   // Panel görünürlük kontrolü
   const [panelsVisible, setPanelsVisible] = useState({
@@ -176,7 +178,18 @@ export default function App() {
       {/* Modern Search Bar */}
       <SearchBar 
         controlsRef={controlsRef}
-        onTargetSelect={setSelectedTarget}
+        onTargetSelect={(target) => {
+          setSelectedTarget(target)
+          // Exoplanet seçildiğinde gezegen seçimini temizle
+          if (target) {
+            setSelectedPlanet(null)
+          }
+        }}
+        onPlanetSelect={(planet) => {
+          // SearchBar'dan gezegen seçildiğinde gezegen bilgisini göster ve exoplanet seçimini temizle
+          setSelectedPlanet(planet)
+          setSelectedKOI(null)
+        }}
         timeControl={timeControl}
         isVisible={panelsVisible.search}
         onToggle={() => togglePanel('search')}
@@ -185,31 +198,46 @@ export default function App() {
       />
       
       {/* KOI Data Status Indicator - Progressive Loading */}
-      <div style={{
-        position: 'absolute',
-        top: 16,
-        right: 16,
-        padding: '10px 16px',
-        background: (koiLoading || koiLoadingMore)
-          ? 'rgba(234, 179, 8, 0.2)' 
-          : koiError 
-            ? 'rgba(239, 68, 68, 0.2)'
-            : 'rgba(34, 197, 94, 0.2)',
-        border: (koiLoading || koiLoadingMore)
-          ? '1px solid rgba(234, 179, 8, 0.5)'
-          : koiError
-            ? '1px solid rgba(239, 68, 68, 0.5)'
-            : '1px solid rgba(34, 197, 94, 0.5)',
-        borderRadius: 10,
-        backdropFilter: 'blur(10px)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        fontSize: 12,
-        color: 'white',
-        fontWeight: 600
-      }}>
+      {!koiStatusDismissed && (
+        <div 
+          onClick={() => setKoiStatusDismissed(true)}
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            padding: '10px 16px',
+            background: (koiLoading || koiLoadingMore)
+              ? 'rgba(234, 179, 8, 0.2)' 
+              : koiError 
+                ? 'rgba(239, 68, 68, 0.2)'
+                : 'rgba(34, 197, 94, 0.2)',
+            border: (koiLoading || koiLoadingMore)
+              ? '1px solid rgba(234, 179, 8, 0.5)'
+              : koiError
+                ? '1px solid rgba(239, 68, 68, 0.5)'
+                : '1px solid rgba(34, 197, 94, 0.5)',
+            borderRadius: 10,
+            backdropFilter: 'blur(10px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 12,
+            color: 'white',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'transform 0.2s, opacity 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.opacity = '0.9'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.opacity = '1'
+          }}
+          title="Kapat"
+        >
         {koiLoading ? (
           <>
             <div style={{
@@ -248,7 +276,8 @@ export default function App() {
             )}
           </>
         )}
-      </div>
+        </div>
+      )}
 
       {/* Canvas - Ana 3D Sahne */}
       <Canvas
@@ -277,7 +306,12 @@ export default function App() {
           <SolarSystem 
             timeControl={timeControl} 
             setTimeControl={setTimeControl}
-            onPlanetClick={setSelectedPlanet}
+            onPlanetClick={(planet) => {
+              setSelectedPlanet(planet)
+              // Gezegen seçildiğinde exoplanet seçimini temizle
+              setSelectedTarget(null)
+              setSelectedKOI(null)
+            }}
           />
           <CameraDistanceTracker 
             timeControl={timeControl} 

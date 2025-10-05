@@ -370,7 +370,7 @@ export async function fetchLightCurve(
  * Based on KOI catalog parameters
  */
 export async function runBLSAnalysis(
-  lightCurve: LightCurveData,
+  _lightCurve: LightCurveData,
   koiData?: KOIPlanet,
   minPeriod: number = 0.5,
   maxPeriod: number = 20
@@ -390,7 +390,6 @@ export async function runBLSAnalysis(
   const trueDuration = koiData?.koi_duration || 2.88 // saat
   const trueDepth = koiData?.koi_depth ? koiData.koi_depth / 1e6 : 0.01
   const trueSNR = koiData?.koi_model_snr || 15
-  const numTransits = koiData?.koi_num_transits || 10
   
   // Periodogram resolution
   const step = 0.005 // 0.005 gün resolution

@@ -1,5 +1,4 @@
 import type { TimeControl } from '../types'
-import { ONE_YEAR_UNITS } from '../constants/time'
 
 // Yıl seçici bileşeni
 export default function YearSelector({ timeControl, setTimeControl }: {
@@ -8,12 +7,12 @@ export default function YearSelector({ timeControl, setTimeControl }: {
 }) {
   const handleYearChange = (delta: number) => {
     setTimeControl(prev => {
-      const newYear = prev.year + delta
+      // Yıl farkı kadar gün ekle/çıkar (mevcut günü koruyarak)
+      const newTime = prev.currentTime + (delta * 365.25)
+      
       return {
         ...prev,
-        year: newYear,
-        // Yeni yıla geçerken zamanı sıfırla (yılın başı)
-        currentTime: 0
+        currentTime: newTime
       }
     })
   }
@@ -21,12 +20,16 @@ export default function YearSelector({ timeControl, setTimeControl }: {
   const handleYearInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newYear = parseInt(e.target.value)
     if (!isNaN(newYear) && newYear >= 1900 && newYear <= 2100) {
-      setTimeControl(prev => ({
-        ...prev,
-        year: newYear,
-        // Yeni yıla geçerken zamanı sıfırla (yılın başı)
-        currentTime: 0
-      }))
+      setTimeControl(prev => {
+        // Yıl farkı kadar gün ekle/çıkar
+        const yearDelta = newYear - prev.year
+        const newTime = prev.currentTime + (yearDelta * 365.25)
+        
+        return {
+          ...prev,
+          currentTime: newTime
+        }
+      })
     }
   }
 
