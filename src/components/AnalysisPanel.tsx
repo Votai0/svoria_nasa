@@ -257,14 +257,18 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
   // Fix canvas rendering issue - programmatically switch data type to force re-render
   useEffect(() => {
     if (lightCurve && !isLoadingLC && dataType === 'PDCSAP') {
+      let timer2: number | undefined
       // Briefly switch to SAP to trigger canvas render, then switch back
       const timer1 = setTimeout(() => {
         setDataType('SAP')
-        setTimeout(() => {
+        timer2 = setTimeout(() => {
           setDataType('PDCSAP')
-        }, 10)
+        }, 10) as unknown as number
       }, 50)
-      return () => clearTimeout(timer1)
+      return () => {
+        clearTimeout(timer1)
+        if (timer2) clearTimeout(timer2)
+      }
     }
   }, [lightCurve, isLoadingLC])
   
