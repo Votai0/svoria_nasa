@@ -287,8 +287,6 @@ export async function fetchLightCurve(
     snr: koiData?.koi_model_snr
   })
   
-  await new Promise(resolve => setTimeout(resolve, 800))
-  
   // KOI real parameters
   const period = koiData?.koi_period || 3.85 // days
   const t0 = koiData?.koi_time0bk ? (koiData.koi_time0bk % period) : 0.5
@@ -381,8 +379,6 @@ export async function runBLSAnalysis(
     snr: koiData?.koi_model_snr,
     numTransits: koiData?.koi_num_transits
   })
-  
-  await new Promise(resolve => setTimeout(resolve, 1500))
   
   // KOI gerçek parametreleri
   const truePeriod = koiData?.koi_period || 3.85
@@ -482,8 +478,6 @@ export async function foldLightCurve(
   dataType: 'SAP' | 'PDCSAP' = 'PDCSAP',
   nBins: number = 100
 ): Promise<PhaseFoldedData> {
-  await new Promise(resolve => setTimeout(resolve, 500))
-  
   const data = dataType === 'SAP' ? lightCurve.sapFlux : lightCurve.pdcsapFlux
   
   // Faz hesapla
@@ -547,7 +541,6 @@ export async function predictPlanetCandidate(
   koiData?: KOIPlanet
 ): Promise<ModelPrediction> {
   // In real application: TensorFlow.js or backend ML model
-  await new Promise(resolve => setTimeout(resolve, 800))
   
   const { snr, depth, duration } = blsResult
   
@@ -679,8 +672,6 @@ export async function fetchCatalogInfo(
   _targetId: string,
   koiData: KOIPlanet
 ): Promise<CatalogInfo> {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
   // Generate catalog info from KOI data
   return koiToCatalogInfo(koiData)
 }

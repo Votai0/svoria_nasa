@@ -16,24 +16,23 @@ export function useKOIPlanets(params?: {
   const [loading, setLoading] = useState(true) // İlk batch için
   const [isLoadingMore, setIsLoadingMore] = useState(false) // Arka plan yüklemesi
   const [error, setError] = useState<Error | null>(null)
-  const [loadedCount, setLoadedCount] = useState(0)
   const [totalCount, setTotalCount] = useState<number | null>(null)
   
   const refetch = useCallback(async () => {
     setLoading(true)
     setError(null)
-    setLoadedCount(0)
     setTotalCount(null)
     
     try {
       // İlk batch'i özel olarak çek
-      const BATCH_SIZE = 100
+      const BATCH_SIZE = 500
       let allPlanets: KOIPlanet[] = []
       let skip = 0
       let hasMore = true
       let isFirstBatch = true
       
       while (hasMore) {
+        const startTime = performance.now()
         const batch = await fetchKOIPlanets({
           skip,
           limit: BATCH_SIZE,
@@ -42,14 +41,14 @@ export function useKOIPlanets(params?: {
           include_actual: params?.include_actual,
           include_probabilities: params?.include_probabilities
         })
+        const endTime = performance.now()
         
         allPlanets = allPlanets.concat(batch)
         
         // Update state IMMEDIATELY - progressive loading
-        setPlanets([...allPlanets])
-        setLoadedCount(allPlanets.length)
+        setPlanets(allPlanets)
         
-        console.log(`📦 ${allPlanets.length.toLocaleString()} KOI loaded`)
+        console.log(`📦 Batch #${Math.floor(skip / BATCH_SIZE) + 1}: Got ${batch.length} planets, Total now: ${allPlanets.length} (took ${(endTime - startTime).toFixed(0)}ms)`)
         
         // First batch arrived - user can use it!
         if (isFirstBatch) {
@@ -86,7 +85,6 @@ export function useKOIPlanets(params?: {
     loading, // İlk batch yükleniyor mu?
     isLoadingMore, // Arka planda daha fazla yükleniyor mu?
     error, 
-    loadedCount, 
     totalCount, // Toplam yüklenecek (bilindiğinde)
     refetch 
   }

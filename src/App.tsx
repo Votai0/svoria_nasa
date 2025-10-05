@@ -61,7 +61,6 @@ export default function App() {
     loading: koiLoading, 
     isLoadingMore: koiLoadingMore,
     error: koiError, 
-    loadedCount,
     totalCount 
   } = useKOIPlanets({
     include_probabilities: true
@@ -309,7 +308,7 @@ export default function App() {
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }} />
-            ✅ {loadedCount.toLocaleString()} / Loading in background...
+            ✅ {koiPlanets.length.toLocaleString()} / Loading in background...
           </>
         ) : (
           <>
