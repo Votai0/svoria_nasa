@@ -73,7 +73,15 @@ export default function App() {
   
   useEffect(() => {
     if (koiPlanets.length > 0) {
-      const targets = koiPlanets.map(koi => ({
+      // Remove duplicates based on kepid (unique identifier)
+      const uniqueKOIs = new Map<number, typeof koiPlanets[0]>()
+      koiPlanets.forEach(koi => {
+        if (!uniqueKOIs.has(koi.kepid)) {
+          uniqueKOIs.set(koi.kepid, koi)
+        }
+      })
+      
+      const targets = Array.from(uniqueKOIs.values()).map(koi => ({
         id: `KOI-${koi.kepid}`,
         name: koi.kepler_name || koi.kepoi_name || `KOI-${koi.kepid}`,
         ra: koi.ra || 0,
@@ -81,8 +89,9 @@ export default function App() {
         type: 'KOI' as const,
         confirmed: koi.koi_pdisposition === 'CONFIRMED'
       }))
+      
       setKoiTargets(targets)
-      console.log('✅ KOI Planets loaded:', targets.length, 'planets')
+      console.log('✅ KOI Planets loaded:', targets.length, 'unique planets')
       console.log('📊 Statistics:', koiStats)
     }
     if (koiError) {
@@ -106,14 +115,11 @@ export default function App() {
     setPanelsVisible(prev => ({ ...prev, [panel]: !prev[panel] }))
   }
   
-  // Calculate planet positions (updated when year changes)
-  const [referencePositions, setReferencePositions] = useState(() => 
-    calculateAllPlanetPositions(timeControl.year, 0)
+  // Calculate planet positions ONCE at start (October 4, 2025)
+  // These reference positions stay fixed, currentTime provides continuous movement
+  const [referencePositions] = useState(() => 
+    calculateAllPlanetPositions(2025, 277) // October 4, 2025
   )
-  
-  useEffect(() => {
-    setReferencePositions(calculateAllPlanetPositions(timeControl.year, 0))
-  }, [timeControl.year])
   
   // Load target from URL parameters (after koiTargets are loaded)
   useEffect(() => {

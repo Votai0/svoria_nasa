@@ -3,7 +3,7 @@ import type { KOIPlanet, KOIStatistics, ModelStatus, KeplerDisposition } from '.
 import { fetchKOIPlanets, fetchKOIPlanetById, getKOIStatistics, getModelStatus } from '../services/exoplanetAPI'
 
 /**
- * Hook to fetch ALL KOI planets with pagination (1000 per batch)
+ * Hook to fetch ALL KOI planets with pagination (500 per batch)
  * Progressive loading - ilk batch gelince kullanılabilir, arka planda yüklemeye devam eder
  */
 export function useKOIPlanets(params?: {
@@ -27,7 +27,7 @@ export function useKOIPlanets(params?: {
     
     try {
       // İlk batch'i özel olarak çek
-      const BATCH_SIZE = 1000
+      const BATCH_SIZE = 100
       let allPlanets: KOIPlanet[] = []
       let skip = 0
       let hasMore = true

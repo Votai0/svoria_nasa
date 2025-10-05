@@ -89,12 +89,27 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
   }
 
   const handleYearChange = (newYear: number) => {
-    // Keep day and hour values, only change year
-    setTimeControl(prev => ({ 
-      ...prev, 
-      year: newYear
-      // currentTime will remain unchanged
-    }))
+    // Calculate new currentTime based on year change
+    // Keep the same day of year (relative position in the year)
+    setTimeControl(prev => {
+      const DAYS_IN_YEAR = 365.25
+      const START_YEAR = 2025
+      const START_DAY = 277 // October 4
+      
+      // Calculate current day of year
+      const totalDays = prev.currentTime - START_DAY
+      const currentDayOfYear = ((totalDays % DAYS_IN_YEAR) + DAYS_IN_YEAR) % DAYS_IN_YEAR
+      
+      // Calculate new currentTime for the new year
+      const yearsDiff = newYear - START_YEAR
+      const newCurrentTime = START_DAY + (yearsDiff * DAYS_IN_YEAR) + currentDayOfYear
+      
+      return {
+        ...prev,
+        year: newYear,
+        currentTime: newCurrentTime
+      }
+    })
     setYearInputValue(newYear.toString())
   }
 
@@ -107,12 +122,8 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
     if (e.key === 'Enter') {
       const year = parseInt(yearInputValue) || timeControl.year
       const clampedYear = Math.max(1900, Math.min(3000, year))
-      // Change year but keep currentTime
-      setTimeControl(prev => ({ 
-        ...prev, 
-        year: clampedYear
-      }))
-      setYearInputValue(clampedYear.toString())
+      // Use the same handleYearChange logic
+      handleYearChange(clampedYear)
     }
   }
 

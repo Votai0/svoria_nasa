@@ -11,10 +11,11 @@ export default function SolarSystem({ timeControl, setTimeControl, onPlanetClick
   setTimeControl: React.Dispatch<React.SetStateAction<TimeControl>>
   onPlanetClick?: (planet: PlanetType) => void
 }) {
-  // Başlangıç yılı için referans konumları hesapla (sadece yıl değiştiğinde)
+  // Başlangıç konumları SADECE İLK RENDER'DA hesapla (başlangıç tarihi: 4 Ekim 2025)
+  // Yıl değişse bile bu pozisyonlar sabit kalmalı, sadece currentTime artmalı
   const referencePositions = useMemo(() => {
-    return calculateAllPlanetPositions(timeControl.year, 0)
-  }, [timeControl.year])
+    return calculateAllPlanetPositions(2025, 277) // 4 Ekim 2025 - Başlangıç tarihi
+  }, []) // Dependency array boş - sadece bir kez hesapla
 
   return (
     <group>

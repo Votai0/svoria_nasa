@@ -60,14 +60,16 @@ export default function Planet({
   
   useFrame(() => {
     if (groupRef.current && distance > 0) {
-      // Yörünge hareketi: realPosition (yıl başı konumu) + yıl içindeki hareket
-      const baseAngle = realPosition !== undefined ? realPosition : (startAngle || 0)
-      // currentTime: 0-365.25 arası gün sayısı
+      // Yörünge hareketi: Sürekli pozisyon hesaplama (yıl geçişlerinde zıplama yok)
       // orbitSpeed = BASE_SPEED / orbital_period
       // orbital_period: gezegenin bir tur için gereken Dünya yılı sayısı
       // Dünya: period=1 → 365.25 günde tam tur (2π radyan)
       // Mars: period=1.88 → 687 günde tam tur (2π radyan)
       const orbitalPeriodInDays = 365.25 / (orbitSpeed * 100) // BASE_SPEED=0.01 → *100
+      
+      // Başlangıç açısını kullan ve sürekli hareket ekle
+      const baseAngle = realPosition !== undefined ? realPosition : (startAngle || 0)
+      // currentTime sürekli artıyor (277, 278, ..., 642, 643, ...) - zıplama yok
       const angle = baseAngle + (currentTime / orbitalPeriodInDays) * (2 * Math.PI)
       groupRef.current.position.x = Math.cos(angle) * distance
       groupRef.current.position.z = Math.sin(angle) * distance
