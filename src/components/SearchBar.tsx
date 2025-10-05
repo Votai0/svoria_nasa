@@ -114,7 +114,7 @@ export default function SearchBar({
         }}
         title={isVisible ? 'Hide search' : 'Show search'}
       >
-        {isVisible ? '›' : '🔍'}
+        {isVisible ? '‹' : '🔍'}
       </button>
       
       {/* Floating Search Bar */}

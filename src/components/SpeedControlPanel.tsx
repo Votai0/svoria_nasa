@@ -45,7 +45,7 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
         }}
         title={isVisible ? 'Hide speed control' : 'Show speed control'}
       >
-        {isVisible ? '›' : '⚡'}
+        {isVisible ? '‹' : '⚡'}
       </button>
       
       <div style={{

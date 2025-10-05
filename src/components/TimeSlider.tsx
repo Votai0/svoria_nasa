@@ -160,7 +160,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
         }}
         title={isVisible ? 'Hide time control' : 'Show time control'}
       >
-        {isVisible ? '›' : '📅'}
+        {isVisible ? '‹' : '📅'}
       </button>
       
       <div style={{

@@ -308,7 +308,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
         }}
         title={isVisible ? 'Hide panel' : 'Show panel'}
       >
-        {isVisible ? '‹' : '📊'}
+        {isVisible ? '›' : '📊'}
       </button>
       
       <div style={{
