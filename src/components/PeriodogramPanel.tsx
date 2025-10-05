@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import type { PeriodogramData, BLSResult } from '../types/exoplanet'
 
 type Props = {
@@ -10,6 +10,7 @@ type Props = {
 
 export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, selectedPeriod }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [hoveredPeriod, setHoveredPeriod] = useState<number | null>(null)
   
   useEffect(() => {
     if (!data || !canvasRef.current) return
@@ -61,7 +62,7 @@ export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, sele
     ctx.strokeStyle = 'rgba(147, 51, 234, 0.8)'
     ctx.lineWidth = 2
     ctx.beginPath()
-    periods.forEach((_, i) => {
+    periods.forEach((period, i) => {
       const x = padding + (i / periods.length) * width
       const y = padding + height - ((power[i] - minPower) / powerRange) * height
       if (i === 0) ctx.moveTo(x, y)

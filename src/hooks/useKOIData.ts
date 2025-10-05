@@ -3,30 +3,77 @@ import type { KOIPlanet, KOIStatistics, ModelStatus, KeplerDisposition } from '.
 import { fetchKOIPlanets, fetchKOIPlanetById, getKOIStatistics, getModelStatus } from '../services/exoplanetAPI'
 
 /**
- * Hook to fetch list of KOI planets with optional filtering
+ * Hook to fetch ALL KOI planets with pagination (1000 per batch)
+ * Progressive loading - ilk batch gelince kullanılabilir, arka planda yüklemeye devam eder
  */
 export function useKOIPlanets(params?: {
-  skip?: number
-  limit?: number
   disposition?: KeplerDisposition
   only_confirmed?: boolean
   include_actual?: boolean
   include_probabilities?: boolean
 }) {
   const [planets, setPlanets] = useState<KOIPlanet[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // İlk batch için
+  const [isLoadingMore, setIsLoadingMore] = useState(false) // Arka plan yüklemesi
   const [error, setError] = useState<Error | null>(null)
+  const [loadedCount, setLoadedCount] = useState(0)
+  const [totalCount, setTotalCount] = useState<number | null>(null)
   
   const refetch = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setLoadedCount(0)
+    setTotalCount(null)
+    
     try {
-      const data = await fetchKOIPlanets(params)
-      setPlanets(data)
+      // İlk batch'i özel olarak çek
+      const BATCH_SIZE = 1000
+      let allPlanets: KOIPlanet[] = []
+      let skip = 0
+      let hasMore = true
+      let isFirstBatch = true
+      
+      while (hasMore) {
+        const batch = await fetchKOIPlanets({
+          skip,
+          limit: BATCH_SIZE,
+          disposition: params?.disposition,
+          only_confirmed: params?.only_confirmed,
+          include_actual: params?.include_actual,
+          include_probabilities: params?.include_probabilities
+        })
+        
+        allPlanets = allPlanets.concat(batch)
+        
+        // HEMEN state'i güncelle - progressive loading
+        setPlanets([...allPlanets])
+        setLoadedCount(allPlanets.length)
+        
+        console.log(`📦 ${allPlanets.length.toLocaleString()} KOI yüklendi`)
+        
+        // İlk batch geldi - kullanıcı kullanabilir!
+        if (isFirstBatch) {
+          setLoading(false)
+          setIsLoadingMore(true)
+          isFirstBatch = false
+          console.log('✅ İlk batch hazır - arama kullanılabilir!')
+        }
+        
+        // Son batch mı?
+        if (batch.length < BATCH_SIZE) {
+          hasMore = false
+          setTotalCount(allPlanets.length)
+          setIsLoadingMore(false)
+          console.log(`🎉 TÜM veriler yüklendi: ${allPlanets.length.toLocaleString()} gezegen`)
+        } else {
+          skip += BATCH_SIZE
+        }
+      }
+      
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch KOI planets'))
-    } finally {
       setLoading(false)
+      setIsLoadingMore(false)
     }
   }, [JSON.stringify(params)])
   
@@ -34,7 +81,15 @@ export function useKOIPlanets(params?: {
     refetch()
   }, [refetch])
   
-  return { planets, loading, error, refetch }
+  return { 
+    planets, 
+    loading, // İlk batch yükleniyor mu?
+    isLoadingMore, // Arka planda daha fazla yükleniyor mu?
+    error, 
+    loadedCount, 
+    totalCount, // Toplam yüklenecek (bilindiğinde)
+    refetch 
+  }
 }
 
 /**
@@ -135,7 +190,6 @@ export function useModelStatus() {
  */
 export function useKOIDashboard() {
   const { planets, loading: planetsLoading, error: planetsError, refetch: refetchPlanets } = useKOIPlanets({
-    limit: 100,
     include_probabilities: true
   })
   const { stats, loading: statsLoading, error: statsError, refetch: refetchStats } = useKOIStatistics()

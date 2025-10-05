@@ -55,7 +55,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
   // Error state
   const [error, setError] = useState<string | null>(null)
   
-  // 1. Light curve yükle (KOI parametreleri ile)
+  // 1. Light curve yükle (KOI parametreleri ile) - OTOMATİK PIPELINE
   const handleLoadLightCurve = async () => {
     if (!selectedTarget || !selectedKOI) return
     
@@ -67,21 +67,69 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
       const data = await fetchLightCurve(selectedTarget.id, dataType, undefined, selectedKOI)
       setLightCurve(data)
       
-      // Katalog bilgilerini KOI verisinden oluştur
-      setIsLoadingCatalog(true)
-      const catalog = await fetchCatalogInfo(selectedTarget.id, selectedKOI)
-      setCatalogInfo(catalog)
-      setIsLoadingCatalog(false)
-      
       console.log('📈 Işık eğrisi yüklendi:', {
         period: selectedKOI.koi_period,
         depth: selectedKOI.koi_depth,
         duration: selectedKOI.koi_duration,
         snr: selectedKOI.koi_model_snr
       })
+      
+      // Katalog bilgilerini KOI verisinden oluştur (paralel)
+      setIsLoadingCatalog(true)
+      const catalog = await fetchCatalogInfo(selectedTarget.id, selectedKOI)
+      setCatalogInfo(catalog)
+      setIsLoadingCatalog(false)
+      
+      // OTOMATİK: BLS analizi başlat
+      setIsLoadingBLS(true)
+      const blsResult = await runBLSAnalysis(data, selectedKOI)
+      setPeriodogram(blsResult)
+      
+      console.log('📈 BLS analizi tamamlandı:', {
+        bestPeriod: blsResult.bestPeriods[0]?.period,
+        koiCatalogPeriod: selectedKOI.koi_period
+      })
+      
+      // OTOMATİK: En iyi periyodu seç ve foldla
+      if (blsResult.bestPeriods.length > 0) {
+        const bestPeriod = blsResult.bestPeriods[0]
+        setSelectedPeriod(bestPeriod)
+        
+        setIsLoadingFolded(true)
+        const folded = await foldLightCurve(
+          data,
+          bestPeriod.period,
+          bestPeriod.t0,
+          dataType
+        )
+        setPhaseFolded(folded)
+        setIsLoadingFolded(false)
+        
+        console.log('🌓 Faz katlaması tamamlandı')
+        
+        // OTOMATİK: AI tahmin yap
+        setIsLoadingPrediction(true)
+        const pred = await predictPlanetCandidate(bestPeriod, data, selectedKOI)
+        setPrediction(pred)
+        setIsLoadingPrediction(false)
+        
+        console.log('🤖 AI Tahmini:', {
+          probability: pred.probability,
+          disposition: selectedKOI.koi_pdisposition,
+          confidence: pred.confidence
+        })
+      }
+      
+      setIsLoadingBLS(false)
+      
     } catch (err) {
-      setError('Işık eğrisi yüklenirken hata oluştu')
+      setError('Analiz pipeline hatası: ' + (err as Error).message)
       console.error(err)
+      setIsLoadingLC(false)
+      setIsLoadingBLS(false)
+      setIsLoadingFolded(false)
+      setIsLoadingPrediction(false)
+      setIsLoadingCatalog(false)
     } finally {
       setIsLoadingLC(false)
     }

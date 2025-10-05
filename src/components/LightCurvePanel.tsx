@@ -302,7 +302,7 @@ export default function LightCurvePanel({
                   float: 'right'
                 }}
               >
-                ⚡ Run Analysis
+                🔄 Re-analyze BLS
               </button>
             )}
           </div>

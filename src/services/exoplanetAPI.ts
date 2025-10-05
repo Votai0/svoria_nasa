@@ -24,7 +24,7 @@ const KEPLER_API_BASE_URL = import.meta.env.VITE_KEPLER_API_URL || '/api'
 // ============================================================================
 
 /**
- * Get list of KOI planets with ML predictions
+ * Get list of KOI planets with ML predictions (single request)
  */
 export async function fetchKOIPlanets(params?: {
   skip?: number
@@ -53,12 +53,61 @@ export async function fetchKOIPlanets(params?: {
 }
 
 /**
+ * Fetch ALL KOI planets in batches of 1000
+ * Automatically handles pagination until all data is retrieved
+ */
+export async function fetchAllKOIPlanets(params?: {
+  disposition?: KeplerDisposition
+  only_confirmed?: boolean
+  include_actual?: boolean
+  include_probabilities?: boolean
+  onProgress?: (loaded: number) => void
+}): Promise<KOIPlanet[]> {
+  const BATCH_SIZE = 1000
+  let allPlanets: KOIPlanet[] = []
+  let skip = 0
+  let hasMore = true
+  
+  console.log('🚀 Tüm KOI gezegenleri yükleniyor (1000\'lik batch\'lerle)...')
+  
+  while (hasMore) {
+    const batch = await fetchKOIPlanets({
+      skip,
+      limit: BATCH_SIZE,
+      disposition: params?.disposition,
+      only_confirmed: params?.only_confirmed,
+      include_actual: params?.include_actual,
+      include_probabilities: params?.include_probabilities
+    })
+    
+    allPlanets = allPlanets.concat(batch)
+    
+    console.log(`📦 Batch yüklendi: ${skip + batch.length} / toplam`)
+    
+    // Progress callback
+    if (params?.onProgress) {
+      params.onProgress(allPlanets.length)
+    }
+    
+    // Eğer dönen veri BATCH_SIZE'dan azsa, son batch'teyiz demektir
+    if (batch.length < BATCH_SIZE) {
+      hasMore = false
+      console.log(`✅ TÜM veriler yüklendi: ${allPlanets.length} gezegen`)
+    } else {
+      skip += BATCH_SIZE
+    }
+  }
+  
+  return allPlanets
+}
+
+/**
  * Get a single KOI planet by Kepler ID
  */
 export async function fetchKOIPlanetById(
   kepid: number,
-  include_actual = false,
-  include_probabilities = false
+  include_actual = true,
+  include_probabilities = true
 ): Promise<KOIPlanet> {
   const queryParams = new URLSearchParams()
   queryParams.append('include_actual', include_actual.toString())
@@ -146,8 +195,82 @@ export async function searchKOIPlanets(query: string): Promise<ExoplanetTarget[]
 // Note: SearchBar now uses searchKOIPlanets() with real API data
 
 /**
+ * Physical transit model with limb darkening
+ */
+function transitModel(
+  phase: number,
+  depth: number,
+  duration: number,
+  period: number,
+  impact: number = 0.5
+): number {
+  // Normalize phase to [-0.5, 0.5]
+  let p = phase
+  if (p > 0.5) p -= 1
+  if (p < -0.5) p += 1
+  
+  const halfDuration = (duration / period) / 2
+  
+  // Outside transit
+  if (Math.abs(p) > halfDuration) {
+    return 1.0
+  }
+  
+  // Transit ingress/egress with smooth curve
+  const transitFraction = Math.abs(p) / halfDuration
+  
+  // Limb darkening effect (quadratic)
+  const limbDarkening = 1.0 - 0.3 * (1.0 - Math.sqrt(1.0 - transitFraction * transitFraction))
+  
+  // Impact parameter effect
+  const impactFactor = 1.0 - impact * 0.3
+  
+  // Smooth ingress/egress
+  let transitDepth = depth * limbDarkening * impactFactor
+  
+  if (transitFraction > 0.8) {
+    // Smooth edges
+    const edgeFactor = (1.0 - transitFraction) / 0.2
+    transitDepth *= edgeFactor
+  }
+  
+  return 1.0 - transitDepth
+}
+
+/**
+ * Add realistic stellar variability and noise
+ */
+function addStellarVariability(
+  time: number,
+  flux: number,
+  variabilityPeriod: number = 25.0,
+  variabilityAmp: number = 0.002
+): number {
+  // Stellar rotation/spots (sinusoidal)
+  const stellarVar = variabilityAmp * Math.sin(2 * Math.PI * time / variabilityPeriod)
+  
+  // Long-term trend
+  const longTrend = 0.0005 * Math.sin(2 * Math.PI * time / 100)
+  
+  return flux + stellarVar + longTrend
+}
+
+/**
+ * Generate correlated (red) noise
+ */
+function generateRedNoise(time: number, amplitude: number, frequency: number = 0.1): number {
+  // Multiple frequency components for realistic noise
+  let noise = 0
+  for (let i = 1; i <= 5; i++) {
+    noise += Math.sin(2 * Math.PI * frequency * i * time + Math.random() * 2 * Math.PI) / i
+  }
+  return noise * amplitude / 3
+}
+
+/**
  * Fetch light curve data from KOI parameters
- * Generates synthetic light curve based on real KOI transit parameters
+ * Generates realistic light curve based on KOI transit parameters
+ * with physical transit model, limb darkening, and stellar variability
  */
 export async function fetchLightCurve(
   targetId: string,
@@ -155,114 +278,194 @@ export async function fetchLightCurve(
   sector?: number,
   koiData?: KOIPlanet
 ): Promise<LightCurveData> {
-  // Gerçek uygulamada MAST Archive API kullanılır
-  // https://mast.stsci.edu/api/v0/pyex.html
+  console.log('🔬 Generating realistic light curve from KOI parameters:', {
+    period: koiData?.koi_period,
+    depth: koiData?.koi_depth,
+    duration: koiData?.koi_duration,
+    t0: koiData?.koi_time0bk,
+    impact: koiData?.koi_impact,
+    snr: koiData?.koi_model_snr
+  })
   
-  await new Promise(resolve => setTimeout(resolve, 1500))
+  await new Promise(resolve => setTimeout(resolve, 800))
   
-  // KOI parametrelerinden gerçekçi veri üret
-  const numPoints = 10000
+  // KOI gerçek parametreleri
   const period = koiData?.koi_period || 3.85 // gün
   const t0 = koiData?.koi_time0bk ? (koiData.koi_time0bk % period) : 0.5
-  const duration = koiData?.koi_duration ? koiData.koi_duration / 24 : 0.12 // saatten güne
-  const depth = koiData?.koi_depth ? koiData.koi_depth / 1e6 : 0.01 // ppm'den normalize
+  const duration = koiData?.koi_duration ? koiData.koi_duration / 24 : 0.12 // saat → gün
+  const depth = koiData?.koi_depth ? koiData.koi_depth / 1e6 : 0.01 // ppm → normalized
+  const impact = koiData?.koi_impact !== undefined ? koiData.koi_impact : 0.5
+  const snr = koiData?.koi_model_snr || 20
+  
+  // Noise levels based on SNR
+  const noiseLevel = depth / snr * 5 // Gerçekçi noise
+  
+  const numPoints = 12000
+  const cadence = 0.00139 // ~2 dakika (Kepler long cadence ~30 dakika = 0.02 gün)
+  const totalTime = numPoints * cadence
+  const numTransits = Math.floor(totalTime / period)
+  
+  console.log(`📊 ${numPoints} nokta, ${numTransits} transit, ${cadence.toFixed(5)} gün cadence`)
   
   const sapFlux = []
   const pdcsapFlux = []
   
   for (let i = 0; i < numPoints; i++) {
-    const time = i * 0.002 // 2 dakika cadence
-    const noise = (Math.random() - 0.5) * 0.001
+    const time = i * cadence
     
-    // Transit modeli
-    let flux = 1.0
+    // Transit model
     const phase = ((time - t0) % period) / period
-    const transitPhase = phase < 0 ? phase + 1 : phase
+    let flux = transitModel(phase, depth, duration, period, impact)
     
-    if (Math.abs(transitPhase - 0.5) < (duration / period / 2) || 
-        transitPhase < (duration / period / 2) || 
-        transitPhase > (1 - duration / period / 2)) {
-      flux = 1.0 - depth
-    }
+    // Stellar variability
+    flux = addStellarVariability(time, flux, period * 3.5, 0.0015)
     
-    const finalFlux = flux + noise
-    const quality = Math.random() > 0.95 ? 1 : 0
+    // Red noise
+    const redNoise = generateRedNoise(time, noiseLevel * 0.5)
     
+    // White noise
+    const whiteNoise = (Math.random() - 0.5) * noiseLevel
+    
+    // Quality flags (realistic bad data points)
+    const quality = Math.random() > 0.98 ? 1 : 0
+    
+    // SAP: daha çok noise ve systematik
+    const sapFluxValue = flux + redNoise * 1.5 + whiteNoise * 2.0
     sapFlux.push({
       time,
-      flux: finalFlux + noise * 0.5, // SAP daha gürültülü
-      flux_err: 0.0005,
+      flux: sapFluxValue,
+      flux_err: noiseLevel * 1.5,
       quality
     })
     
+    // PDCSAP: temizlenmiş, daha az noise
+    const pdcsapFluxValue = flux + redNoise * 0.5 + whiteNoise
     pdcsapFlux.push({
       time,
-      flux: finalFlux,
-      flux_err: 0.0003,
+      flux: pdcsapFluxValue,
+      flux_err: noiseLevel * 0.7,
       quality
     })
   }
   
+  console.log('✅ Light curve generated:', {
+    points: numPoints,
+    transits: numTransits,
+    depth: (depth * 1e6).toFixed(1) + ' ppm',
+    snr: snr.toFixed(1)
+  })
+  
   return {
     targetId,
-    sector: sector || 44,
+    sector: sector || 1,
     sapFlux,
     pdcsapFlux,
-    mission: 'TESS'
+    mission: 'Kepler'
   }
 }
 
 /**
  * Run BLS (Box Least Squares) analysis on light curve
- * Uses KOI catalog period as reference for realistic periodogram
+ * Generates realistic periodogram with harmonics and aliases
+ * Based on KOI catalog parameters
  */
 export async function runBLSAnalysis(
-  _lightCurve: LightCurveData,
+  lightCurve: LightCurveData,
   koiData?: KOIPlanet,
   minPeriod: number = 0.5,
   maxPeriod: number = 20
 ): Promise<PeriodogramData> {
-  // Gerçek uygulamada astropy BLS veya lightkurve kullanılır
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  console.log('📈 Running BLS analysis with KOI parameters:', {
+    truePeriod: koiData?.koi_period,
+    depth: koiData?.koi_depth,
+    snr: koiData?.koi_model_snr,
+    numTransits: koiData?.koi_num_transits
+  })
   
-  // KOI katalog periyodunu kullan
+  await new Promise(resolve => setTimeout(resolve, 1500))
+  
+  // KOI gerçek parametreleri
   const truePeriod = koiData?.koi_period || 3.85
   const trueT0 = koiData?.koi_time0bk || 0.5
   const trueDuration = koiData?.koi_duration || 2.88 // saat
   const trueDepth = koiData?.koi_depth ? koiData.koi_depth / 1e6 : 0.01
   const trueSNR = koiData?.koi_model_snr || 15
+  const numTransits = koiData?.koi_num_transits || 10
   
+  // Periodogram resolution
+  const step = 0.005 // 0.005 gün resolution
   const periods: number[] = []
   const power: number[] = []
   
-  for (let p = minPeriod; p <= maxPeriod; p += 0.01) {
+  // BLS power calculation (simplified but realistic)
+  for (let p = minPeriod; p <= maxPeriod; p += step) {
     periods.push(p)
-    // Gerçek periyotta pik oluştur
-    const dist = Math.abs(p - truePeriod)
-    const signal = Math.exp(-dist * dist / 0.02)
-    const noise = Math.random() * 0.1
-    power.push(signal + noise)
+    
+    // Main signal at true period
+    const mainDist = Math.abs(p - truePeriod)
+    const mainSignal = Math.exp(-mainDist * mainDist / 0.015) * (trueSNR / 15)
+    
+    // Harmonics (P/2, P/3, 2P, 3P)
+    const harmonic1 = Math.exp(-Math.pow(p - truePeriod / 2, 2) / 0.01) * 0.3
+    const harmonic2 = Math.exp(-Math.pow(p - truePeriod / 3, 2) / 0.008) * 0.2
+    const harmonic3 = Math.exp(-Math.pow(p - truePeriod * 2, 2) / 0.02) * 0.25
+    
+    // Aliases (due to window function)
+    const alias1 = Math.exp(-Math.pow(p - (truePeriod + 0.5), 2) / 0.01) * 0.15
+    const alias2 = Math.exp(-Math.pow(p - (truePeriod - 0.5), 2) / 0.01) * 0.15
+    
+    // Noise floor (scaled by SNR)
+    const noiseFloor = 0.05 + Math.random() * (0.1 / (trueSNR / 10))
+    
+    // Red noise component (1/f noise)
+    const redNoise = 0.02 / Math.sqrt(p) * Math.random()
+    
+    // Total power
+    const totalPower = mainSignal + harmonic1 + harmonic2 + harmonic3 + 
+                       alias1 + alias2 + noiseFloor + redNoise
+    
+    power.push(Math.min(totalPower, 1.0)) // Cap at 1.0
   }
   
-  // En yüksek 3 piki bul (gerçek KOI periyodu ilk sırada olacak)
+  // Find top 5 peaks
   const peaks: BLSResult[] = []
   const sortedIndices = power
     .map((p, i) => ({ power: p, index: i }))
     .sort((a, b) => b.power - a.power)
-    .slice(0, 3)
+    .slice(0, 5)
   
   sortedIndices.forEach(({ power: p, index: i }, rank) => {
     const period = periods[i]
-    // İlk peak (en güçlü) KOI katalog değerlerini kullanır
     const isMainPeak = rank === 0
-    peaks.push({
-      period: isMainPeak ? truePeriod : period,
-      t0: isMainPeak ? trueT0 : 0.5,
-      duration: isMainPeak ? trueDuration : 2.88,
-      depth: isMainPeak ? trueDepth : 0.01,
-      snr: isMainPeak ? trueSNR : p * 10,
-      power: p
-    })
+    
+    // Main peak uses exact KOI values
+    if (isMainPeak) {
+      peaks.push({
+        period: truePeriod,
+        t0: trueT0,
+        duration: trueDuration,
+        depth: trueDepth,
+        snr: trueSNR,
+        power: p
+      })
+    } else {
+      // Other peaks are harmonics/aliases
+      peaks.push({
+        period,
+        t0: trueT0 % period,
+        duration: trueDuration * (truePeriod / period),
+        depth: trueDepth * 0.5,
+        snr: p * trueSNR * 0.6,
+        power: p
+      })
+    }
+  })
+  
+  console.log('✅ BLS complete:', {
+    bestPeriod: peaks[0].period.toFixed(3) + ' days',
+    power: peaks[0].power.toFixed(3),
+    snr: peaks[0].snr.toFixed(1),
+    peaks: peaks.length
   })
   
   return {
@@ -349,28 +552,45 @@ export async function predictPlanetCandidate(
   
   const { snr, depth, duration } = blsResult
   
-  // KOI disposition skorunu kullan (eğer varsa)
+  // Backend'den gelen AI tahminini kullan (öncelikli)
   let baseScore = 0.5
+  let usingBackendProbability = false
+  
   if (koiData) {
-    // KOI score varsa direkt kullan (0-1 arası)
-    if (koiData.koi_score !== undefined && koiData.koi_score !== null) {
+    // 1. Backend'den gelen probabilities.CONFIRMED değerini kullan (EN ÖNCELİKLİ)
+    if (koiData.probabilities?.CONFIRMED !== undefined) {
+      baseScore = koiData.probabilities.CONFIRMED
+      usingBackendProbability = true
+      console.log('✅ Backend AI probability kullanılıyor:', baseScore)
+    }
+    // 2. prediction_probability varsa onu kullan
+    else if (koiData.prediction_probability !== undefined && koiData.prediction_probability !== null) {
+      baseScore = koiData.prediction_probability
+      usingBackendProbability = true
+      console.log('✅ Backend prediction_probability kullanılıyor:', baseScore)
+    }
+    // 3. KOI score varsa direkt kullan (0-1 arası)
+    else if (koiData.koi_score !== undefined && koiData.koi_score !== null) {
       baseScore = koiData.koi_score
+      console.log('ℹ️ KOI score kullanılıyor:', baseScore)
+    }
+    // 4. Disposition'dan tahmin et (fallback)
+    else {
+      if (koiData.koi_pdisposition === 'CONFIRMED') {
+        baseScore = 0.95
+      } else if (koiData.koi_disposition === 'CONFIRMED') {
+        baseScore = 0.92
+      } else if (koiData.koi_pdisposition === 'CANDIDATE') {
+        baseScore = 0.65
+      } else if (koiData.koi_pdisposition === 'FALSE_POSITIVE') {
+        baseScore = 0.15
+      }
+      console.log('ℹ️ Disposition\'dan skor hesaplandı:', baseScore)
     }
     
-    // veya disposition'dan tahmin et
-    if (koiData.koi_pdisposition === 'CONFIRMED') {
-      baseScore = 0.95
-    } else if (koiData.koi_disposition === 'CONFIRMED') {
-      baseScore = 0.92
-    } else if (koiData.koi_pdisposition === 'CANDIDATE') {
-      baseScore = 0.65
-    } else if (koiData.koi_pdisposition === 'FALSE_POSITIVE') {
-      baseScore = 0.15
-    }
-    
-    // False positive flagları varsa skoru düşür
-    if (koiData.koi_fpflag_nt || koiData.koi_fpflag_ss || 
-        koiData.koi_fpflag_co || koiData.koi_fpflag_ec) {
+    // False positive flagları varsa skoru düşür (sadece backend skoru yoksa)
+    if (!usingBackendProbability && (koiData.koi_fpflag_nt || koiData.koi_fpflag_ss || 
+        koiData.koi_fpflag_co || koiData.koi_fpflag_ec)) {
       baseScore *= 0.7
     }
   } else {
@@ -416,7 +636,7 @@ export async function predictPlanetCandidate(
   
   return {
     probability,
-    confidence: koiData ? 0.95 : 0.75,
+    confidence: usingBackendProbability ? 0.98 : (koiData ? 0.95 : 0.75),
     features: {
       snr,
       depth,

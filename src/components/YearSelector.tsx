@@ -1,4 +1,5 @@
 import type { TimeControl } from '../types'
+import { ONE_YEAR_UNITS } from '../constants/time'
 
 // Yıl seçici bileşeni
 export default function YearSelector({ timeControl, setTimeControl }: {

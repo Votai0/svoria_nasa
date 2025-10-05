@@ -16,6 +16,7 @@ import { flyToPlanet } from './utils/navigation'
 import { calculateAllPlanetPositions } from './utils/astronomy'
 import { planets } from './constants/planets'
 import { useKOIPlanets, useKOIStatistics } from './hooks/useKOIData'
+import DataVerification from './components/DataVerification'
 
 export default function App() {
   const controlsRef = useRef<CameraControlsImpl | null>(null)
@@ -42,9 +43,15 @@ export default function App() {
   // Kamera mesafesi (Dünya'dan ışık yılı cinsinden)
   const [cameraDistance, setCameraDistance] = useState(0)
   
-  // KOI planetlerini otomatik yükle - TÜM verileri çek
-  const { planets: koiPlanets, loading: koiLoading, error: koiError } = useKOIPlanets({
-    limit: 100000, // API'den maksimum veri çek
+  // KOI planetlerini otomatik yükle - Progressive loading (1000'lik batch'lerle)
+  const { 
+    planets: koiPlanets, 
+    loading: koiLoading, 
+    isLoadingMore: koiLoadingMore,
+    error: koiError, 
+    loadedCount,
+    totalCount 
+  } = useKOIPlanets({
     include_probabilities: true
   })
   const { stats: koiStats } = useKOIStatistics()
@@ -161,18 +168,18 @@ export default function App() {
         koiLoading={koiLoading}
       />
       
-      {/* KOI Data Status Indicator */}
+      {/* KOI Data Status Indicator - Progressive Loading */}
       <div style={{
         position: 'absolute',
         top: 16,
         right: 16,
         padding: '10px 16px',
-        background: koiLoading 
+        background: (koiLoading || koiLoadingMore)
           ? 'rgba(234, 179, 8, 0.2)' 
           : koiError 
             ? 'rgba(239, 68, 68, 0.2)'
             : 'rgba(34, 197, 94, 0.2)',
-        border: koiLoading
+        border: (koiLoading || koiLoadingMore)
           ? '1px solid rgba(234, 179, 8, 0.5)'
           : koiError
             ? '1px solid rgba(239, 68, 68, 0.5)'
@@ -197,15 +204,32 @@ export default function App() {
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }} />
-            KOI Verileri Yükleniyor...
+            İlk Batch Yükleniyor...
           </>
         ) : koiError ? (
           <>
             ❌ KOI API Hatası
           </>
+        ) : koiLoadingMore ? (
+          <>
+            <div style={{
+              width: 12,
+              height: 12,
+              border: '2px solid rgba(234, 179, 8, 0.3)',
+              borderTop: '2px solid rgba(234, 179, 8, 1)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            ✅ {loadedCount.toLocaleString()} / Arka planda yükleniyor...
+          </>
         ) : (
           <>
-            ✅ {koiPlanets.length} KOI Gezegen Yüklendi
+            ✅ {koiPlanets.length.toLocaleString()} KOI Gezegen
+            {totalCount && totalCount > koiPlanets.length && (
+              <span style={{ fontSize: 10, opacity: 0.7 }}>
+                {' '}(+{(totalCount - koiPlanets.length).toLocaleString()} daha)
+              </span>
+            )}
           </>
         )}
       </div>
@@ -287,6 +311,9 @@ export default function App() {
         isVisible={panelsVisible.distance}
         onToggle={() => togglePanel('distance')}
       />
+      
+      {/* Data Verification - DEV MODE ONLY */}
+      {/* {import.meta.env.DEV && <DataVerification />} */}
     </div> 
   )
 }
