@@ -21,6 +21,18 @@ import ExoplanetMarker from './components/ExoplanetMarker'
 export default function App() {
   const controlsRef = useRef<CameraControlsImpl | null>(null)
   
+  // Intro logo animation state
+  const [showIntroLogo, setShowIntroLogo] = useState(true)
+  
+  useEffect(() => {
+    // Hide intro logo after 2.5 seconds
+    const timer = setTimeout(() => {
+      setShowIntroLogo(false)
+    }, 2500)
+    
+    return () => clearTimeout(timer)
+  }, [])
+  
   // Time controls - Start from current day (October 4, 2025)
   const currentYear = 2025
   const currentDayOfYear = 277 // October 4
@@ -175,6 +187,34 @@ export default function App() {
       position: 'relative',
       background: 'linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%)'
     }}>
+      {/* Intro Logo Animation */}
+      {showIntroLogo && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%)',
+          animation: 'logoFadeOut 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards'
+        }}>
+          <img 
+            src="/logo/Logo white.svg" 
+            alt="Svoria" 
+            style={{ 
+              height: 120,
+              width: 'auto',
+              filter: 'drop-shadow(0 0 40px rgba(147, 51, 234, 0.6))',
+              animation: 'logoSlideUp 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards'
+            }} 
+          />
+        </div>
+      )}
+      
       {/* Modern Search Bar */}
       <SearchBar 
         controlsRef={controlsRef}
@@ -371,6 +411,44 @@ export default function App() {
       
       {/* Data Verification - DEV MODE ONLY */}
       {/* {import.meta.env.DEV && <DataVerification />} */}
+      
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes logoSlideUp {
+          0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+          }
+          20% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          80% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-100px) scale(0.8);
+          }
+        }
+        
+        @keyframes logoFadeOut {
+          0% {
+            opacity: 1;
+            backdrop-filter: blur(0px);
+          }
+          80% {
+            opacity: 1;
+            backdrop-filter: blur(0px);
+          }
+          100% {
+            opacity: 0;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+          }
+        }
+      `}</style>
     </div> 
   )
 }

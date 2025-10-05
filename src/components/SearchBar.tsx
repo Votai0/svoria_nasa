@@ -88,13 +88,14 @@ export default function SearchBar({
 
   return (
     <>
-      {/* Toggle Button - Always visible */}
+      {/* Toggle Button - Outside panel on right middle when open */}
       <button
         onClick={onToggle}
         style={{
           position: 'absolute',
-          top: 16,
-          left: isVisible ? 'min(396px, calc(100vw - 564px))' : 16,
+          top: '4%',
+          transform: 'translateY(-50%)',
+          left: isVisible ? 'calc(16px + min(380px, calc(100vw - 580px)))' : 16,
           zIndex: 1001,
           background: 'rgba(10, 10, 15, 0.88)',
           backdropFilter: 'blur(24px)',
@@ -107,13 +108,13 @@ export default function SearchBar({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 16,
+          fontSize: 20,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
         }}
         title={isVisible ? 'Hide search' : 'Show search'}
       >
-        {isVisible ? '×' : '🔍'}
+        {isVisible ? '›' : '🔍'}
       </button>
       
       {/* Floating Search Bar */}
@@ -128,30 +129,6 @@ export default function SearchBar({
         opacity: isVisible ? 1 : 0,
         pointerEvents: isVisible ? 'auto' : 'none'
       }}>
-        {/* Logo Header */}
-        <div style={{
-          marginBottom: 12,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '12px 16px',
-          background: 'rgba(10, 10, 15, 0.88)',
-          backdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          borderRadius: 12,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-        }}>
-          <img 
-            src="/logo/Logo white.svg" 
-            alt="Svoria" 
-            style={{ 
-              height: 32,
-              width: 'auto',
-              filter: 'drop-shadow(0 2px 8px rgba(147, 51, 234, 0.3))'
-            }} 
-          />
-        </div>
-        
         <div style={{ position: 'relative' }}>
           {/* Search Input */}
           <input

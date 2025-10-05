@@ -19,13 +19,14 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
 
   return (
     <>
-      {/* Toggle Button */}
+      {/* Toggle Button - Outside panel on right middle when open */}
       <button
         onClick={onToggle}
         style={{
           position: 'absolute',
-          bottom: 16,
-          left: isVisible ? 'min(336px, calc(100vw - 564px))' : 16,
+          bottom: isVisible ? 'calc(16px + 115px)' : 16, // 115px is half of ~230px panel height
+          transform: 'translateY(50%)',
+          left: isVisible ? 'calc(16px + min(320px, calc(100vw - 580px)) + 8px)' : 16,
           zIndex: 101,
           background: 'rgba(15, 15, 30, 0.92)',
           backdropFilter: 'blur(24px)',
@@ -38,13 +39,13 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 16,
+          fontSize: 20,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
         }}
         title={isVisible ? 'Hide speed control' : 'Show speed control'}
       >
-        {isVisible ? '×' : '⚡'}
+        {isVisible ? '›' : '⚡'}
       </button>
       
       <div style={{

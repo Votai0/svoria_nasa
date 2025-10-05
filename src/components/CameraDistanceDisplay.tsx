@@ -3,6 +3,8 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 import { useNavigate } from 'react-router-dom'
 import type { TimeControl } from '../types'
+import HyperparameterModal from './HyperparameterModal'
+import type { HyperparameterConfig } from './HyperparameterModal'
 
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_KEPLER_API_URL || '/api'
@@ -63,19 +65,53 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
   const navigate = useNavigate()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [showModal, setShowModal] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    setSelectedFile(file)
+    setShowModal(true)
+  }
+
+  const handleModalSubmit = async (config: HyperparameterConfig) => {
+    if (!selectedFile) return
 
     setIsUploading(true)
     setUploadStatus(null)
 
     try {
       const formData = new FormData()
-      formData.append('file', file)
-      formData.append('filename', file.name)
+      formData.append('training_file', selectedFile)
+      formData.append('model_name', config.model_name)
+      formData.append('use_existing_data', config.use_existing_data ? 'true' : 'false')
+      
+      // XGBoost hyperparameters
+      formData.append('max_depth', config.max_depth.toString())
+      formData.append('learning_rate', config.learning_rate.toString())
+      formData.append('n_estimators', config.n_estimators.toString())
+      formData.append('min_child_weight', config.min_child_weight.toString())
+      formData.append('gamma', config.gamma.toString())
+      formData.append('subsample', config.subsample.toString())
+      formData.append('colsample_bytree', config.colsample_bytree.toString())
+      formData.append('reg_alpha', config.reg_alpha.toString())
+      formData.append('reg_lambda', config.reg_lambda.toString())
+      
+      // Training configuration
+      formData.append('test_size', config.test_size.toString())
+      formData.append('val_size', config.val_size.toString())
+      formData.append('n_folds', config.n_folds.toString())
+      formData.append('early_stopping_rounds', config.early_stopping_rounds.toString())
+
+      // Debug: Log all FormData entries
+      console.log('📤 Sending training request with config:', config)
+      console.log('📤 FormData entries:')
+      for (const [key, value] of formData.entries()) {
+        console.log(`  ${key}: ${value instanceof File ? `File(${value.name})` : value}`)
+      }
 
       const response = await fetch(`${API_BASE_URL}/train`, {
         method: 'POST',
@@ -83,24 +119,34 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
       })
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`)
+        const errorText = await response.text()
+        throw new Error(`Upload failed: ${response.statusText} - ${errorText}`)
       }
 
       const result = await response.json()
-      setUploadStatus('✅ Uploaded!')
-      console.log('Train CSV uploaded:', result)
+      setUploadStatus('✅ Eğitim başladı!')
+      console.log('Training started:', result)
       
-      // Clear message after 2 seconds
-      setTimeout(() => setUploadStatus(null), 2000)
+      // Clear message after 3 seconds
+      setTimeout(() => setUploadStatus(null), 3000)
     } catch (error) {
       console.error('Upload error:', error)
-      setUploadStatus('❌ Error!')
-      setTimeout(() => setUploadStatus(null), 3000)
+      setUploadStatus(`❌ Hata: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
+      setTimeout(() => setUploadStatus(null), 5000)
     } finally {
       setIsUploading(false)
+      setSelectedFile(null)
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
+    }
+  }
+
+  const handleModalClose = () => {
+    setShowModal(false)
+    setSelectedFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
@@ -183,9 +229,10 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
             ref={fileInputRef}
             type="file"
             accept=".csv"
-            onChange={handleFileUpload}
+            onChange={handleFileSelect}
             style={{ display: 'none' }}
             id="train-csv-upload"
+            disabled={isUploading}
           />
           <label
             htmlFor="train-csv-upload"
@@ -205,7 +252,8 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
               transition: 'all 0.2s',
               color: isUploading ? 'rgb(253, 224, 71)' : 'rgb(165, 180, 252)',
               textTransform: 'uppercase',
-              letterSpacing: '0.5px'
+              letterSpacing: '0.5px',
+              opacity: isUploading ? 0.6 : 1
             }}
             onMouseEnter={(e) => {
               if (!isUploading) {
@@ -218,7 +266,7 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
               }
             }}
           >
-            {isUploading ? '⏳ Uploading...' : '📄 Add Train CSV'}
+            {isUploading ? '⏳ Eğitiliyor...' : '📄 Add Train CSV'}
           </label>
           
           {/* Upload Status */}
@@ -234,6 +282,14 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
           )}
         </div>
       </div>
+
+      {/* Hyperparameter Modal */}
+      <HyperparameterModal
+        isOpen={showModal}
+        onClose={handleModalClose}
+        onSubmit={handleModalSubmit}
+        fileName={selectedFile?.name || ''}
+      />
 
       {/* Model Performance Button - Next to Distance Display */}
       <button

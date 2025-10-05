@@ -43,9 +43,7 @@ export default function ModelPerformance() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const url = API_BASE_URL.includes('/api') 
-          ? `${API_BASE_URL}/latest-visualization`
-          : `${API_BASE_URL}/api/latest-visualization`
+        const url = `${API_BASE_URL}/latest-visualization`
         console.log('🔍 Fetching from:', url)
         
         const response = await fetch(url)

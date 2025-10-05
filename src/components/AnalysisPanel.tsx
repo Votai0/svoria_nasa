@@ -254,13 +254,14 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
   
   return (
     <>
-      {/* Toggle Button */}
+      {/* Toggle Button - Outside panel on left middle when open */}
       <button
         onClick={onToggle}
         style={{
           position: 'absolute',
-          right: isVisible ? 'min(496px, calc(100vw - 424px))' : 16,
-          top: 16,
+          right: isVisible ? 'calc(16px + min(480px, calc(100vw - 440px)) + 8px)' : 16,
+          top: '50%',
+          transform: 'translateY(-50%)',
           zIndex: 101,
           background: '#1a1a1a',
           backdropFilter: 'blur(12px)',
@@ -273,13 +274,13 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 16,
+          fontSize: 20,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
         }}
         title={isVisible ? 'Hide panel' : 'Show panel'}
       >
-        {isVisible ? '×' : '📊'}
+        {isVisible ? '‹' : '📊'}
       </button>
       
       <div style={{
