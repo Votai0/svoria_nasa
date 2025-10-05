@@ -1,7 +1,11 @@
 import { useState, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
+import { useNavigate } from 'react-router-dom'
 import type { TimeControl } from '../types'
+
+// API Base URL
+const API_BASE_URL = import.meta.env.VITE_KEPLER_API_URL || '/api'
 
 // 1 AU = 149,597,870.7 km
 // 1 ışık yılı = 9,460,730,472,580.8 km
@@ -56,6 +60,7 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
   isVisible: boolean
   onToggle: () => void
 }) {
+  const navigate = useNavigate()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -72,7 +77,7 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
       formData.append('file', file)
       formData.append('filename', file.name)
 
-      const response = await fetch('/api/train', {
+      const response = await fetch(`${API_BASE_URL}/train`, {
         method: 'POST',
         body: formData
       })
@@ -229,6 +234,50 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
           )}
         </div>
       </div>
+
+      {/* Model Performance Button */}
+      <button
+        onClick={() => navigate('/model-performance')}
+        style={{
+          position: 'absolute',
+          bottom: 20,
+          left: isVisible ? 'calc(50% + 320px)' : 'calc(50% + 160px)',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          padding: '12px 20px',
+          background: 'rgba(99, 102, 241, 0.2)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '12px',
+          border: '1px solid rgba(99, 102, 241, 0.4)',
+          color: 'rgb(165, 180, 252)',
+          fontFamily: 'monospace',
+          fontSize: '13px',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          opacity: isVisible ? 1 : 0,
+          pointerEvents: isVisible ? 'auto' : 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(99, 102, 241, 0.3)'
+          e.currentTarget.style.transform = 'translateX(-50%) translateY(-4px)'
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(99, 102, 241, 0.3)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'
+          e.currentTarget.style.transform = 'translateX(-50%) translateY(0)'
+          e.currentTarget.style.boxShadow = '0 4px 20px rgba(99, 102, 241, 0.2)'
+        }}
+        title="View Model Performance"
+      >
+        <span style={{ fontSize: 16 }}>🤖</span>
+        Model Performance
+      </button>
     </>
   )
 }
