@@ -77,7 +77,7 @@ export default function TimeControlPanel({ timeControl, setTimeControl }: {
         </button>
       </div>
 
-      {/* Yıl Seçici */}
+      {/* Year Selector */}
       <YearSelector timeControl={timeControl} setTimeControl={setTimeControl} />
 
       {/* Zaman Çizelgesi (Timeline) */}
@@ -267,8 +267,8 @@ export default function TimeControlPanel({ timeControl, setTimeControl }: {
           justifyContent: 'space-between',
           marginTop: 4
         }}>
-          <span style={{ color: '#666', fontSize: 10 }}>0 gün</span>
-          <span style={{ color: '#666', fontSize: 10 }}>365 gün</span>
+          <span style={{ color: '#666', fontSize: 10 }}>0 day</span>
+          <span style={{ color: '#666', fontSize: 10 }}>365 days</span>
         </div>
         <style>{`
           .timeline-slider::-webkit-slider-thumb {
@@ -386,8 +386,8 @@ export default function TimeControlPanel({ timeControl, setTimeControl }: {
           { label: '0.5x', value: 0.5 },
           { label: '1x', value: 1 },
           { label: '10x', value: 10 },
-          { label: '1 gün', value: 50 },
-          { label: '1 ay', value: 200 }
+          { label: '1 day', value: 50 },
+          { label: '1 month', value: 200 }
         ].map((preset) => (
           <button
             key={preset.value}

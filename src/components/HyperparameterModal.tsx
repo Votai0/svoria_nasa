@@ -367,7 +367,7 @@ export default function HyperparameterModal({
                 max={100}
                 step={10}
                 onChange={(v) => updateConfig('early_stopping_rounds', v)}
-                description="Erken durdurma (20-100)"
+                description="Early stopping (20-100)"
               />
             </div>
           </div>
@@ -401,7 +401,7 @@ export default function HyperparameterModal({
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
             }}
           >
-            ❌ İptal
+            ❌ Cancel
           </button>
           <button
             onClick={handleSubmit}
@@ -426,7 +426,7 @@ export default function HyperparameterModal({
               e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)'
             }}
           >
-            🚀 Eğitime Başla
+            🚀 Start Training
           </button>
         </div>
       </div>

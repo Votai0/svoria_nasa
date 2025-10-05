@@ -39,7 +39,7 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
           animation: 'spin 1s linear infinite'
         }} />
         <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 13 }}>
-          Kepler KOI verileri yükleniyor...
+          Loading Kepler KOI data...
         </div>
       </div>
     )
@@ -59,7 +59,7 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
       }}>
         <div style={{ fontSize: 48 }}>🔭</div>
         <div style={{ fontSize: 14, textAlign: 'center' }}>
-          KOI verisi bulunamadı
+          KOI data not found
         </div>
       </div>
     )
@@ -119,7 +119,7 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
           marginBottom: 12,
           letterSpacing: 1
         }}>
-          🤖 ML MODEL TAHMİNİ
+          🤖 ML MODEL PREDICTION
         </div>
         
         <div style={{
@@ -189,7 +189,7 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
             gap: 8
           }}>
             <div style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.5)', fontWeight: 600 }}>
-              Sınıf Olasılıkları
+              Class Probabilities
             </div>
             {Object.entries(koiData.probabilities).map(([key, value]) => (
               <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -247,7 +247,7 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
           marginBottom: 12,
           letterSpacing: 1
         }}>
-          🛰️ YÖRÜNGE PARAMETRELERİ
+          🛰️ ORBITAL PARAMETERS
         </div>
         <div style={{
           display: 'grid',
@@ -255,10 +255,10 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
           gap: 10
         }}>
           {koiData.koi_period && (
-            <InfoRow label="Period" value={`${koiData.koi_period.toFixed(4)} gün`} />
+            <InfoRow label="Period" value={`${koiData.koi_period.toFixed(4)} days`} />
           )}
           {koiData.koi_duration && (
-            <InfoRow label="Transit Duration" value={`${koiData.koi_duration.toFixed(2)} saat`} />
+            <InfoRow label="Transit Duration" value={`${koiData.koi_duration.toFixed(2)} hours`} />
           )}
           {koiData.koi_depth && (
             <InfoRow label="Transit Depth" value={`${(koiData.koi_depth * 1000).toFixed(2)} ppm`} />
@@ -279,7 +279,7 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
             marginBottom: 12,
             letterSpacing: 1
           }}>
-            🪐 GEZEGEN ÖZELLİKLERİ
+            🪐 PLANETARY PROPERTIES
           </div>
           <div style={{
             display: 'grid',
@@ -321,7 +321,7 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
             marginBottom: 12,
             letterSpacing: 1
           }}>
-            ⭐ YILDIZ ÖZELLİKLERİ
+            ⭐ STELLAR PROPERTIES
           </div>
           <div style={{
             display: 'grid',
@@ -355,7 +355,7 @@ export default function KOIInfoPanel({ koiData, isLoading }: Props) {
             fontWeight: 600,
             marginBottom: 8
           }}>
-            KOORDİNATLAR
+            COORDINATES
           </div>
           <div style={{ display: 'flex', gap: 16 }}>
             {koiData.ra !== undefined && (

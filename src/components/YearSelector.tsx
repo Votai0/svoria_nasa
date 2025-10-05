@@ -1,13 +1,13 @@
 import type { TimeControl } from '../types'
 
-// Yıl seçici bileşeni
+// Year selector component
 export default function YearSelector({ timeControl, setTimeControl }: {
   timeControl: TimeControl
   setTimeControl: React.Dispatch<React.SetStateAction<TimeControl>>
 }) {
   const handleYearChange = (delta: number) => {
     setTimeControl(prev => {
-      // Yıl farkı kadar gün ekle/çıkar (mevcut günü koruyarak)
+      // Add/subtract days equal to year difference (preserving current day)
       const newTime = prev.currentTime + (delta * 365.25)
       
       return {
@@ -21,7 +21,7 @@ export default function YearSelector({ timeControl, setTimeControl }: {
     const newYear = parseInt(e.target.value)
     if (!isNaN(newYear) && newYear >= 1900 && newYear <= 2100) {
       setTimeControl(prev => {
-        // Yıl farkı kadar gün ekle/çıkar
+        // Add/subtract days equal to year difference
         const yearDelta = newYear - prev.year
         const newTime = prev.currentTime + (yearDelta * 365.25)
         
@@ -40,7 +40,7 @@ export default function YearSelector({ timeControl, setTimeControl }: {
       gap: 8,
       marginBottom: 12
     }}>
-      <span style={{ color: '#aaa', fontSize: 12, minWidth: 40 }}>📆 Yıl</span>
+      <span style={{ color: '#aaa', fontSize: 12, minWidth: 40 }}>📆 Year</span>
       
       <button
         onClick={() => handleYearChange(-10)}

@@ -5,49 +5,49 @@ type Props = {
   onClose: () => void
 }
 
-// Gezegen bilgilerini detaylı açıklamalarla göster
+// Display planet information with detailed descriptions
 const getPlanetDescription = (name: string): string => {
   const descriptions: Record<string, string> = {
-    'Güneş': 'Güneş sistemimizin merkezindeki yıldız. 4.6 milyar yıllık ve hidrojen füzyonu ile enerji üretiyor.',
-    'Merkür': 'Güneş\'e en yakın gezegen. Gündüz sıcaklığı 430°C\'ye ulaşırken, gece -180°C\'ye düşüyor.',
-    'Venüs': 'Güneş sisteminin en sıcak gezegeni. Yoğun atmosferi sera etkisi oluşturarak 470°C\'ye çıkıyor.',
-    'Dünya': 'Bilinen tek yaşanabilir gezegen. %71\'i su ile kaplı ve koruyucu bir atmosfere sahip.',
-    'Mars': 'Kızıl gezegen. Demir oksit nedeniyle kırmızı renkli. Geçmişte sıvı su bulunduğu düşünülüyor.',
-    'Jüpiter': 'Güneş sisteminin en büyük gezegeni. Dev bir gaz gezegeni ve güçlü manyetik alana sahip.',
-    'Satürn': 'İhtişamlı halkaları ile ünlü. Halkalar buz ve kaya parçacıklarından oluşuyor.',
-    'Uranüs': 'Yanlamasına dönen ilginç bir gezegen. Mavi-yeşil rengi metan gazından kaynaklanıyor.',
-    'Neptün': 'Güneşten en uzak gezegen. 2,000 km/sa hıza ulaşan rüzgarları var.'
+    'Sun': 'The star at the center of our solar system. 4.6 billion years old and produces energy through hydrogen fusion.',
+    'Mercury': 'The closest planet to the Sun. Daytime temperature reaches 430°C, while it drops to -180°C at night.',
+    'Venus': 'The hottest planet in the solar system. Its dense atmosphere creates a greenhouse effect raising temp to 470°C.',
+    'Earth': 'The only known habitable planet. 71% covered with water and has a protective atmosphere.',
+    'Mars': 'The red planet. Reddish due to iron oxide. Believed to have had liquid water in the past.',
+    'Jupiter': 'The largest planet in the solar system. A giant gas planet with a powerful magnetic field.',
+    'Saturn': 'Famous for its magnificent rings. The rings are made of ice and rock particles.',
+    'Uranus': 'An interesting planet that rotates on its side. Its blue-green color comes from methane gas.',
+    'Neptune': 'The farthest planet from the Sun. Has winds reaching speeds of 2,000 km/h.'
   }
-  return descriptions[name] || 'Bu gök cismi hakkında detaylı bilgi mevcut değil.'
+  return descriptions[name] || 'Detailed information about this celestial body is not available.'
 }
 
-// Yörünge periyodunu insan okunabilir formata çevir
+// Convert orbital period to human-readable format
 const formatOrbitalPeriod = (orbitSpeed: number): string => {
   const BASE_SPEED = 0.01
   const periodInYears = BASE_SPEED / orbitSpeed
   
   if (periodInYears < 1) {
     const days = Math.round(periodInYears * 365.25)
-    return `${days} gün`
+    return `${days} day${days !== 1 ? 's' : ''}`
   } else if (periodInYears < 2) {
-    return '1 yıl'
+    return '1 year'
   } else {
-    return `${periodInYears.toFixed(1)} yıl`
+    return `${periodInYears.toFixed(1)} years`
   }
 }
 
-// Dönüş periyodunu formatla
+// Format rotation period
 const formatRotationPeriod = (period: number): string => {
   const absPeriod = Math.abs(period)
   const isRetrograde = period < 0
   
   if (absPeriod < 1) {
     const hours = Math.round(absPeriod * 24)
-    return `~${hours} saat${isRetrograde ? ' (ters yönde)' : ''}`
+    return `~${hours} hour${hours !== 1 ? 's' : ''}${isRetrograde ? ' (retrograde)' : ''}`
   } else if (absPeriod === 1) {
-    return '1 gün'
+    return '1 day'
   } else {
-    return `${absPeriod.toFixed(1)} gün${isRetrograde ? ' (ters yönde)' : ''}`
+    return `${absPeriod.toFixed(1)} days${isRetrograde ? ' (retrograde)' : ''}`
   }
 }
 
@@ -71,7 +71,7 @@ export default function PlanetInfoPanel({ planet, onClose }: Props) {
       zIndex: 100,
       color: '#fff'
     }}>
-      {/* Başlık ve kapat butonu */}
+      {/* Header and close button */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -110,11 +110,11 @@ export default function PlanetInfoPanel({ planet, onClose }: Props) {
             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
           }}
         >
-          Kapat
+          Close
         </button>
       </div>
 
-      {/* Açıklama */}
+      {/* Description */}
       <p style={{ 
         fontSize: 14, 
         lineHeight: 1.6,
@@ -124,18 +124,18 @@ export default function PlanetInfoPanel({ planet, onClose }: Props) {
         {getPlanetDescription(planet.name)}
       </p>
 
-      {/* Özellikler */}
+      {/* Properties */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Güneş değilse yörünge bilgisi göster */}
+        {/* Show orbital info if not the Sun */}
         {planet.distance > 0 && (
           <>
             <InfoRow 
-              label="Güneş'e Uzaklık" 
-              value={`${planet.distance} AU (Astronomik Birim)`}
+              label="Distance from Sun" 
+              value={`${planet.distance} AU (Astronomical Unit)`}
               color="#FFD700"
             />
             <InfoRow 
-              label="Yörünge Periyodu" 
+              label="Orbital Period" 
               value={formatOrbitalPeriod(planet.orbitSpeed)}
               color="#FFA500"
             />
@@ -143,29 +143,29 @@ export default function PlanetInfoPanel({ planet, onClose }: Props) {
         )}
         
         <InfoRow 
-          label="Dönüş Periyodu" 
+          label="Rotation Period" 
           value={formatRotationPeriod(planet.rotationPeriod)}
           color="#87CEEB"
         />
         
         {planet.moons && planet.moons.length > 0 && (
           <InfoRow 
-            label="Uydu Sayısı" 
-            value={`${planet.moons.length} uydu`}
+            label="Number of Moons" 
+            value={`${planet.moons.length} moon${planet.moons.length !== 1 ? 's' : ''}`}
             color="#DDA0DD"
           />
         )}
 
         {planet.hasRings && (
           <InfoRow 
-            label="Özel Özellik" 
-            value="Halka sistemi mevcut"
+            label="Special Feature" 
+            value="Has ring system"
             color="#F0E68C"
           />
         )}
       </div>
 
-      {/* Uydular listesi */}
+      {/* Moons list */}
       {planet.moons && planet.moons.length > 0 && (
         <div style={{ marginTop: 20 }}>
           <h3 style={{ 
@@ -174,7 +174,7 @@ export default function PlanetInfoPanel({ planet, onClose }: Props) {
             marginBottom: 10,
             color: 'rgba(255, 255, 255, 0.9)'
           }}>
-            Uydular
+            Moons
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {planet.moons.map((moon, idx) => (
@@ -190,7 +190,7 @@ export default function PlanetInfoPanel({ planet, onClose }: Props) {
               >
                 <span style={{ fontWeight: 600, color: '#fff' }}>{moon.name}</span>
                 {' • '}
-                <span>Yörünge: {formatOrbitalPeriod(moon.orbitSpeed)}</span>
+                <span>Orbit: {formatOrbitalPeriod(moon.orbitSpeed)}</span>
               </div>
             ))}
           </div>
@@ -200,7 +200,7 @@ export default function PlanetInfoPanel({ planet, onClose }: Props) {
   )
 }
 
-// Bilgi satırı komponenti
+// Info row component
 function InfoRow({ label, value, color }: { label: string, value: string, color: string }) {
   return (
     <div style={{

@@ -144,6 +144,24 @@ export default function LightCurvePanel({
   
   return (
     <div style={{ height: '100%', overflow: 'hidden' }}>
+      {/* Info Section */}
+      <div style={{
+        padding: '14px 20px',
+        background: 'rgba(99, 102, 241, 0.08)',
+        borderBottom: '1px solid rgba(99, 102, 241, 0.2)'
+      }}>
+        <div style={{
+          fontSize: 11,
+          lineHeight: 1.6,
+          color: 'rgba(255, 255, 255, 0.85)'
+        }}>
+          <strong style={{ color: 'rgb(165, 180, 252)' }}>💡 What is a Light Curve?</strong>
+          <div style={{ marginTop: 6, color: 'rgba(255, 255, 255, 0.7)' }}>
+            Shows the star's brightness variation over time. When a planet passes in front of the star (transit), a dip in brightness is observed. These dips are fundamental evidence for exoplanet discovery.
+          </div>
+        </div>
+      </div>
+      
       {/* Controls Section */}
       <div style={{
         padding: '16px 20px',
@@ -399,7 +417,7 @@ export default function LightCurvePanel({
               animation: 'spin 1s linear infinite'
             }} />
             <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 13 }}>
-              Işık eğrisi yükleniyor...
+              Loading light curve...
             </div>
           </div>
         ) : !data ? (
@@ -414,7 +432,7 @@ export default function LightCurvePanel({
             color: 'rgba(255, 255, 255, 0.5)'
           }}>
             <div style={{ fontSize: 48 }}>📊</div>
-            <div style={{ fontSize: 14 }}>Bir hedef seçin ve analiz başlatın</div>
+            <div style={{ fontSize: 14 }}>Select a target and start analysis</div>
           </div>
         ) : (
           <canvas

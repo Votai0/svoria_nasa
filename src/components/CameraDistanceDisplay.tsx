@@ -124,14 +124,14 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
       }
 
       const result = await response.json()
-      setUploadStatus('✅ Eğitim başladı!')
+      setUploadStatus('✅ Training started!')
       console.log('Training started:', result)
       
       // Clear message after 3 seconds
       setTimeout(() => setUploadStatus(null), 3000)
     } catch (error) {
       console.error('Upload error:', error)
-      setUploadStatus(`❌ Hata: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
+      setUploadStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       setTimeout(() => setUploadStatus(null), 5000)
     } finally {
       setIsUploading(false)
@@ -266,7 +266,7 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
               }
             }}
           >
-            {isUploading ? '⏳ Eğitiliyor...' : '📄 Add Train CSV'}
+            {isUploading ? '⏳ Training...' : '📄 Add Train CSV'}
           </label>
           
           {/* Upload Status */}

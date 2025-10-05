@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import type { TimeControl } from '../types'
 
-// Zaman güncelleme bileşeni
+// Time update component
 export default function TimeUpdater({ timeControl, setTimeControl }: {
   timeControl: TimeControl
   setTimeControl: React.Dispatch<React.SetStateAction<TimeControl>>
@@ -11,10 +11,10 @@ export default function TimeUpdater({ timeControl, setTimeControl }: {
       setTimeControl(prev => {
         const newTime = prev.currentTime + delta * prev.speed
         
-        // Yıl hesapla (gösterim için)
-        // currentTime sürekli artacak, yılı sadece görüntüleme için hesaplıyoruz
+        // Calculate year (for display)
+        // currentTime will continuously increase, we calculate year only for display
         const DAYS_IN_YEAR = 365.25
-        const startDayOfYear = 277 // 4 Ekim (başlangıç günü)
+        const startDayOfYear = 277 // October 4 (start day)
         const totalDaysSinceStart = newTime - startDayOfYear
         const yearsSinceStart = Math.floor(totalDaysSinceStart / DAYS_IN_YEAR)
         const newYear = 2025 + yearsSinceStart

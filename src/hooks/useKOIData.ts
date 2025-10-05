@@ -45,26 +45,25 @@ export function useKOIPlanets(params?: {
         
         allPlanets = allPlanets.concat(batch)
         
-        // HEMEN state'i güncelle - progressive loading
+        // Update state IMMEDIATELY - progressive loading
         setPlanets([...allPlanets])
         setLoadedCount(allPlanets.length)
         
-        console.log(`📦 ${allPlanets.length.toLocaleString()} KOI yüklendi`)
+        console.log(`📦 ${allPlanets.length.toLocaleString()} KOI loaded`)
         
-        // İlk batch geldi - kullanıcı kullanabilir!
+        // First batch arrived - user can use it!
         if (isFirstBatch) {
-          setLoading(false)
           setIsLoadingMore(true)
           isFirstBatch = false
-          console.log('✅ İlk batch hazır - arama kullanılabilir!')
+          console.log('✅ First batch ready - search available!')
         }
         
-        // Son batch mı?
+        // Is this the last batch?
         if (batch.length < BATCH_SIZE) {
           hasMore = false
           setTotalCount(allPlanets.length)
           setIsLoadingMore(false)
-          console.log(`🎉 TÜM veriler yüklendi: ${allPlanets.length.toLocaleString()} gezegen`)
+          console.log(`🎉 ALL data loaded: ${allPlanets.length.toLocaleString()} planets`)
         } else {
           skip += BATCH_SIZE
         }

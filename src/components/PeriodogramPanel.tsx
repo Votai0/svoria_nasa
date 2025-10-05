@@ -123,7 +123,25 @@ export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, sele
   
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Info Bar */}
+      {/* Info Section */}
+      <div style={{
+        padding: '14px 20px',
+        background: 'rgba(147, 51, 234, 0.08)',
+        borderBottom: '1px solid rgba(147, 51, 234, 0.2)'
+      }}>
+        <div style={{
+          fontSize: 11,
+          lineHeight: 1.6,
+          color: 'rgba(255, 255, 255, 0.85)'
+        }}>
+          <strong style={{ color: 'rgb(196, 181, 253)' }}>💡 What is a Periodogram (BLS)?</strong>
+          <div style={{ marginTop: 6, color: 'rgba(255, 255, 255, 0.7)' }}>
+            The Box Least Squares (BLS) algorithm detects periodic transit signals in the light curve. A "power" value is calculated for each period - high power indicates a strong transit signal at that period.
+          </div>
+        </div>
+      </div>
+      
+      {/* Results Info */}
       {data && (
         <div style={{
           padding: '12px 16px',
@@ -131,7 +149,7 @@ export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, sele
           borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         }}>
           <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)', marginBottom: 8 }}>
-            En güçlü {data.bestPeriods.length} periyot tespit edildi. Birini seçerek katlanmış görünümü inceleyin.
+            {data.bestPeriods.length} strongest periods detected. Select one to view the folded light curve.
           </div>
         </div>
       )}
@@ -157,7 +175,7 @@ export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, sele
               animation: 'spin 1s linear infinite'
             }} />
             <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 13 }}>
-              BLS analizi çalışıyor...
+              Running BLS analysis...
             </div>
           </div>
         ) : !data ? (
@@ -172,7 +190,7 @@ export default function PeriodogramPanel({ data, isLoading, onPeriodSelect, sele
             color: 'rgba(255, 255, 255, 0.5)'
           }}>
             <div style={{ fontSize: 48 }}>📈</div>
-            <div style={{ fontSize: 14 }}>BLS analizini başlatın</div>
+            <div style={{ fontSize: 14 }}>Start BLS analysis</div>
           </div>
         ) : (
           <canvas

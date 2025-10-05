@@ -6,7 +6,7 @@ import type { Moon as MoonType } from '../types'
 import Moon from './Moon'
 import { ROTATION_SCALE } from '../constants/time'
 
-// Planet bileşeni props tipi
+// Planet component props type
 type PlanetProps = {
   name: string
   distance: number
@@ -24,9 +24,9 @@ type PlanetProps = {
   cloudsTexture?: string
   ringTexture?: string
   currentTime: number
-  year?: number // Yıl bilgisi (şu an kullanılmıyor, gelecekte multi-year sim için)
-  realPosition?: number // Gerçek konum (radyan)
-  onClick?: () => void // Gezegene tıklanınca çağrılacak
+  year?: number // Year info (currently unused, for multi-year sim in future)
+  realPosition?: number // Real position (radians)
+  onClick?: () => void // Called when planet is clicked
 }
 
 // Planet bileşeni
@@ -52,7 +52,7 @@ export default function Planet({
   const groupRef = useRef<any>(null)
   const cloudsRef = useRef<any>(null)
 
-  // Texture yükleme
+  // Load textures
   const planetTexture = texture ? useTexture(texture) : null
   const nightMap = nightTexture ? useTexture(nightTexture) : null
   const cloudsMap = cloudsTexture ? useTexture(cloudsTexture) : null
@@ -60,26 +60,24 @@ export default function Planet({
   
   useFrame(() => {
     if (groupRef.current && distance > 0) {
-      // Yörünge hareketi: Sürekli pozisyon hesaplama (yıl geçişlerinde zıplama yok)
-      // orbitSpeed = BASE_SPEED / orbital_period
+      // Orbital motion: Continuous position calculation (no jumps at year transitions)
       // orbital_period: gezegenin bir tur için gereken Dünya yılı sayısı
       // Dünya: period=1 → 365.25 günde tam tur (2π radyan)
       // Mars: period=1.88 → 687 günde tam tur (2π radyan)
       const orbitalPeriodInDays = 365.25 / (orbitSpeed * 100) // BASE_SPEED=0.01 → *100
       
-      // Başlangıç açısını kullan ve sürekli hareket ekle
+      // Use starting angle and add continuous motion
       const baseAngle = realPosition !== undefined ? realPosition : (startAngle || 0)
-      // currentTime sürekli artıyor (277, 278, ..., 642, 643, ...) - zıplama yok
+      // currentTime continuously increasing (277, 278, ..., 642, 643, ...) - no jumps
       const angle = baseAngle + (currentTime / orbitalPeriodInDays) * (2 * Math.PI)
       groupRef.current.position.x = Math.cos(angle) * distance
       groupRef.current.position.z = Math.sin(angle) * distance
-
-      // Kendi ekseni dönüşü - gerçek rotasyon periyoduna göre
+      // Self-axis rotation - based on real rotation period
       const daysElapsed = currentTime
       groupRef.current.rotation.y = (2 * Math.PI * daysElapsed * ROTATION_SCALE) / Math.abs(rotationPeriod)
     }
 
-    // Bulutlar %20 daha hızlı dönsün (atmosfer etkisi)
+    // Clouds rotate 20% faster (atmospheric effect)
     if (cloudsRef.current) {
       const daysElapsed = currentTime
       cloudsRef.current.rotation.y = (2 * Math.PI * daysElapsed * ROTATION_SCALE * 1.2) / Math.abs(rotationPeriod)
@@ -140,7 +138,7 @@ export default function Planet({
         >
           <sphereGeometry args={[size, 64, 64]} />
           {nightMap ? (
-            // Dünya için özel gece/gündüz sistemi
+            // Special day/night system for Earth
             <meshStandardMaterial 
               map={planetTexture}
               emissiveMap={nightMap}

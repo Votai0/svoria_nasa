@@ -57,7 +57,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
       ctx.fillText(f.toFixed(4), padding - 10, y + 4)
     }
     
-    // Transit penceresi (gölgeli alan)
+    // Transit window (shaded area)
     const transitDuration = periodInfo.duration / 24 / periodInfo.period // Faz birimi
     const transitStart = 0.5 - transitDuration / 2
     const transitEnd = 0.5 + transitDuration / 2
@@ -102,7 +102,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
       })
     }
     
-    // Transit merkezi çizgisi
+    // Transit center line
     ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)'
     ctx.lineWidth = 2
     ctx.setLineDash([5, 5])
@@ -137,7 +137,25 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
   
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Info */}
+      {/* Info Section */}
+      <div style={{
+        padding: '14px 20px',
+        background: 'rgba(251, 191, 36, 0.08)',
+        borderBottom: '1px solid rgba(251, 191, 36, 0.2)'
+      }}>
+        <div style={{
+          fontSize: 11,
+          lineHeight: 1.6,
+          color: 'rgba(255, 255, 255, 0.85)'
+        }}>
+          <strong style={{ color: 'rgb(253, 224, 71)' }}>💡 What is Phase Folding?</strong>
+          <div style={{ marginTop: 6, color: 'rgba(255, 255, 255, 0.7)' }}>
+            All transit events are stacked based on the detected period. This amplifies the weak transit signal and allows us to clearly see the planet passing in front of the star. The dip at the center represents the transit event.
+          </div>
+        </div>
+      </div>
+      
+      {/* Period Info */}
       {periodInfo && (
         <div style={{
           padding: '12px 16px',
@@ -147,11 +165,11 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 11, fontFamily: 'monospace' }}>
             <div>
               <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Period: </span>
-              <span style={{ color: 'white', fontWeight: 700 }}>{periodInfo.period.toFixed(4)} gün</span>
+              <span style={{ color: 'white', fontWeight: 700 }}>{periodInfo.period.toFixed(4)} days</span>
             </div>
             <div>
               <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Duration: </span>
-              <span style={{ color: 'white', fontWeight: 700 }}>{periodInfo.duration.toFixed(2)} saat</span>
+              <span style={{ color: 'white', fontWeight: 700 }}>{periodInfo.duration.toFixed(2)} hours</span>
             </div>
             <div>
               <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>Depth: </span>
@@ -186,7 +204,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
               animation: 'spin 1s linear infinite'
             }} />
             <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 13 }}>
-              Faz katlaması yapılıyor...
+              Phase folding in progress...
             </div>
           </div>
         ) : !data || !periodInfo ? (
@@ -202,7 +220,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
           }}>
             <div style={{ fontSize: 48 }}>🌓</div>
             <div style={{ fontSize: 14, textAlign: 'center', maxWidth: 300 }}>
-              Periodogram'dan bir periyot seçin
+              Select a period from the Periodogram
             </div>
           </div>
         ) : (
@@ -233,7 +251,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
               borderRadius: '50%',
               background: 'rgba(147, 51, 234, 0.3)'
             }} />
-            <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Ham veriler</span>
+            <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Raw data</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{
@@ -242,7 +260,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
               borderRadius: '50%',
               background: 'rgba(147, 51, 234, 0.9)'
             }} />
-            <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Binned veriler</span>
+            <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Binned data</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{
@@ -250,7 +268,7 @@ export default function PhaseFoldedPanel({ data, periodInfo, isLoading }: Props)
               height: 8,
               background: 'rgba(239, 68, 68, 0.2)'
             }} />
-            <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Transit penceresi</span>
+            <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Transit window</span>
           </div>
         </div>
       )}

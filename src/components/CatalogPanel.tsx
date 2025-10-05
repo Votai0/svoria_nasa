@@ -27,7 +27,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
           animation: 'spin 1s linear infinite'
         }} />
         <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 13 }}>
-          Katalog bilgileri yükleniyor...
+          Loading catalog information...
         </div>
       </div>
     )
@@ -47,7 +47,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
       }}>
         <div style={{ fontSize: 48 }}>📚</div>
         <div style={{ fontSize: 14, textAlign: 'center' }}>
-          Katalog bilgileri mevcut değil
+          Catalog information not available
         </div>
       </div>
     )
@@ -76,7 +76,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
           letterSpacing: 1,
           marginBottom: 4
         }}>
-          HEDEF KATALOG BİLGİSİ
+          TARGET CATALOG INFORMATION
         </div>
         <div style={{
           fontSize: 16,
@@ -97,7 +97,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
           marginBottom: 12,
           letterSpacing: 1
         }}>
-          ⭐ YILDIZ PARAMETRELERİ
+          ⭐ STELLAR PARAMETERS
         </div>
         <div style={{
           display: 'grid',
@@ -106,35 +106,35 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
         }}>
           {catalogInfo.stellar.teff && (
             <DataRow
-              label="Etkin Sıcaklık (Teff)"
+              label="Effective Temperature (Teff)"
               value={`${catalogInfo.stellar.teff.toLocaleString()} K`}
             />
           )}
           
           {catalogInfo.stellar.radius && (
             <DataRow
-              label="Yarıçap (R☉)"
+              label="Radius (R☉)"
               value={`${catalogInfo.stellar.radius.toFixed(3)} R☉`}
             />
           )}
           
           {catalogInfo.stellar.mass && (
             <DataRow
-              label="Kütle (M☉)"
+              label="Mass (M☉)"
               value={`${catalogInfo.stellar.mass.toFixed(3)} M☉`}
             />
           )}
           
           {catalogInfo.stellar.logg && (
             <DataRow
-              label="Yüzey Çekimi (log g)"
+              label="Surface Gravity (log g)"
               value={catalogInfo.stellar.logg.toFixed(2)}
             />
           )}
           
           {catalogInfo.stellar.metallicity !== undefined && (
             <DataRow
-              label="Metallik [Fe/H]"
+              label="Metallicity [Fe/H]"
               value={`${catalogInfo.stellar.metallicity >= 0 ? '+' : ''}${catalogInfo.stellar.metallicity.toFixed(2)}`}
             />
           )}
@@ -151,7 +151,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             marginBottom: 12,
             letterSpacing: 1
           }}>
-            🪐 GEZEGEN PARAMETRELERİ
+            🪐 PLANETARY PARAMETERS
           </div>
           <div style={{
             display: 'grid',
@@ -160,7 +160,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
           }}>
             {catalogInfo.planetary.radius && (
               <DataRow
-                label="Yarıçap (R⊕)"
+                label="Radius (R⊕)"
                 value={`${catalogInfo.planetary.radius.toFixed(2)} R⊕`}
                 bgColor="rgba(147, 51, 234, 0.1)"
                 borderColor="rgba(147, 51, 234, 0.3)"
@@ -170,8 +170,8 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {catalogInfo.planetary.period && (
               <DataRow
-                label="Yörünge Periyodu"
-                value={`${catalogInfo.planetary.period.toFixed(4)} gün`}
+                label="Orbital Period"
+                value={`${catalogInfo.planetary.period.toFixed(4)} days`}
                 bgColor="rgba(147, 51, 234, 0.1)"
                 borderColor="rgba(147, 51, 234, 0.3)"
                 valueColor="rgb(196, 181, 253)"
@@ -180,7 +180,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {catalogInfo.planetary.semi_major_axis && (
               <DataRow
-                label="Yarı Büyük Eksen"
+                label="Semi-Major Axis"
                 value={`${catalogInfo.planetary.semi_major_axis.toFixed(4)} AU`}
                 bgColor="rgba(147, 51, 234, 0.1)"
                 borderColor="rgba(147, 51, 234, 0.3)"
@@ -190,7 +190,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {catalogInfo.planetary.equilibrium_temp && (
               <DataRow
-                label="Denge Sıcaklığı"
+                label="Equilibrium Temperature"
                 value={`${catalogInfo.planetary.equilibrium_temp.toFixed(0)} K`}
                 bgColor="rgba(147, 51, 234, 0.1)"
                 borderColor="rgba(147, 51, 234, 0.3)"
@@ -200,7 +200,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {catalogInfo.planetary.insolation && (
               <DataRow
-                label="Işınım (Dünya'ya göre)"
+                label="Insolation (vs Earth)"
                 value={`${catalogInfo.planetary.insolation.toFixed(2)}× S⊕`}
                 bgColor="rgba(147, 51, 234, 0.1)"
                 borderColor="rgba(147, 51, 234, 0.3)"
@@ -221,7 +221,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             marginBottom: 12,
             letterSpacing: 1
           }}>
-            🌗 TRANSİT PARAMETRELERİ
+            🌗 TRANSIT PARAMETERS
           </div>
           <div style={{
             display: 'grid',
@@ -230,15 +230,15 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
           }}>
             {koiData.koi_duration && (
               <DataRow
-                label="Transit Süresi"
-                value={`${koiData.koi_duration.toFixed(2)} saat`}
+                label="Transit Duration"
+                value={`${koiData.koi_duration.toFixed(2)} hours`}
                 error={koiData.koi_duration_err1 ? `±${koiData.koi_duration_err1.toFixed(2)}` : undefined}
               />
             )}
             
             {koiData.koi_depth && (
               <DataRow
-                label="Transit Derinliği"
+                label="Transit Depth"
                 value={`${koiData.koi_depth.toFixed(0)} ppm`}
                 error={koiData.koi_depth_err1 ? `±${koiData.koi_depth_err1.toFixed(0)}` : undefined}
               />
@@ -246,7 +246,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {koiData.koi_ror && (
               <DataRow
-                label="Yarıçap Oranı (Rp/R★)"
+                label="Radius Ratio (Rp/R★)"
                 value={koiData.koi_ror.toFixed(4)}
                 error={koiData.koi_ror_err1 ? `±${koiData.koi_ror_err1.toFixed(4)}` : undefined}
               />
@@ -254,7 +254,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {koiData.koi_dor && (
               <DataRow
-                label="a/R★ (Ölçeklendirilmiş)"
+                label="a/R★ (Scaled)"
                 value={koiData.koi_dor.toFixed(2)}
                 error={koiData.koi_dor_err1 ? `±${koiData.koi_dor_err1.toFixed(2)}` : undefined}
               />
@@ -262,7 +262,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {koiData.koi_impact !== null && koiData.koi_impact !== undefined && (
               <DataRow
-                label="İmpakt Parametresi (b)"
+                label="Impact Parameter (b)"
                 value={koiData.koi_impact.toFixed(3)}
                 error={koiData.koi_impact_err1 ? `±${koiData.koi_impact_err1.toFixed(3)}` : undefined}
               />
@@ -270,7 +270,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {koiData.koi_model_snr && (
               <DataRow
-                label="Sinyal-Gürültü Oranı"
+                label="Signal-to-Noise Ratio"
                 value={koiData.koi_model_snr.toFixed(1)}
                 valueColor={koiData.koi_model_snr > 10 ? 'rgb(134, 239, 172)' : 'rgb(252, 211, 77)'}
               />
@@ -278,7 +278,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             
             {koiData.koi_num_transits && (
               <DataRow
-                label="Transit Sayısı"
+                label="Number of Transits"
                 value={koiData.koi_num_transits.toString()}
               />
             )}
@@ -296,7 +296,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             marginBottom: 12,
             letterSpacing: 1
           }}>
-            ✅ DOĞRULAMA DURUMU
+            ✅ VALIDATION STATUS
           </div>
           <div style={{
             display: 'flex',
@@ -368,7 +368,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             marginBottom: 12,
             letterSpacing: 1
           }}>
-            ✓ DOĞRULAMA DURUMU
+            ✓ VALIDATION STATUS
           </div>
           <div style={{
             display: 'grid',
@@ -422,7 +422,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
                 alignItems: 'center'
               }}>
                 <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Gözlenen Transit Sayısı
+                  Observed Number of Transits
                 </span>
                 <span style={{
                   fontSize: 14,
@@ -469,7 +469,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
                 borderRadius: 10
               }}>
                 <div style={{ fontSize: 11, color: 'rgb(248, 113, 113)', fontWeight: 600, marginBottom: 8 }}>
-                  ⚠️ False Positive Bayrakları
+                  ⚠️ False Positive Flags
                 </div>
                 <div style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.6)', display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {koiData.koi_fpflag_nt === 1 && <div>• Not Transit-Like</div>}
@@ -493,7 +493,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
             marginBottom: 12,
             letterSpacing: 1
           }}>
-            🔭 TRANSİT GEOMETRİSİ
+            🔭 TRANSIT GEOMETRY
           </div>
           <div style={{
             display: 'grid',
@@ -511,7 +511,7 @@ export default function CatalogPanel({ catalogInfo, isLoading, koiData = null }:
                 alignItems: 'center'
               }}>
                 <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Rp/R★ Oranı
+                  Rp/R★ Ratio
                 </span>
                 <span style={{
                   fontSize: 14,

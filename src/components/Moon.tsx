@@ -13,9 +13,9 @@ export default function Moon({ distance, size, color, orbitSpeed, rotationPeriod
 
   useFrame(() => {
     if (moonRef.current) {
-      // Yörünge hareketi
+      // Orbital motion
       // orbitSpeed zaten doğru hesaplanmış (BASE_SPEED / period)
-      // Ay'ın yörünge periyodu: ~27.3 gün
+      // Moon's orbital period: ~27.3 days
       const orbitalPeriodInDays = 365.25 / (orbitSpeed * 100)
       const angle = startAngle + (currentTime / orbitalPeriodInDays) * (2 * Math.PI)
       moonRef.current.position.x = Math.cos(angle) * distance
