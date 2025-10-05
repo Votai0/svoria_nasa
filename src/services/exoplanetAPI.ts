@@ -68,7 +68,7 @@ export async function fetchAllKOIPlanets(params?: {
   let skip = 0
   let hasMore = true
   
-  console.log('🚀 Tüm KOI gezegenleri yükleniyor (1000\'lik batch\'lerle)...')
+  console.log('🚀 Loading all KOI planets (in batches of 1000)...')
   
   while (hasMore) {
     const batch = await fetchKOIPlanets({
@@ -82,17 +82,17 @@ export async function fetchAllKOIPlanets(params?: {
     
     allPlanets = allPlanets.concat(batch)
     
-    console.log(`📦 Batch yüklendi: ${skip + batch.length} / toplam`)
+    console.log(`📦 Batch loaded: ${skip + batch.length} / total`)
     
     // Progress callback
     if (params?.onProgress) {
       params.onProgress(allPlanets.length)
     }
     
-    // Eğer dönen veri BATCH_SIZE'dan azsa, son batch'teyiz demektir
+    // If returned data is less than BATCH_SIZE, we're at the last batch
     if (batch.length < BATCH_SIZE) {
       hasMore = false
-      console.log(`✅ TÜM veriler yüklendi: ${allPlanets.length} gezegen`)
+      console.log(`✅ ALL data loaded: ${allPlanets.length} planets`)
     } else {
       skip += BATCH_SIZE
     }
@@ -289,23 +289,23 @@ export async function fetchLightCurve(
   
   await new Promise(resolve => setTimeout(resolve, 800))
   
-  // KOI gerçek parametreleri
-  const period = koiData?.koi_period || 3.85 // gün
+  // KOI real parameters
+  const period = koiData?.koi_period || 3.85 // days
   const t0 = koiData?.koi_time0bk ? (koiData.koi_time0bk % period) : 0.5
-  const duration = koiData?.koi_duration ? koiData.koi_duration / 24 : 0.12 // saat → gün
+  const duration = koiData?.koi_duration ? koiData.koi_duration / 24 : 0.12 // hours → days
   const depth = koiData?.koi_depth ? koiData.koi_depth / 1e6 : 0.01 // ppm → normalized
   const impact = koiData?.koi_impact !== undefined ? koiData.koi_impact : 0.5
   const snr = koiData?.koi_model_snr || 20
   
   // Noise levels based on SNR
-  const noiseLevel = depth / snr * 5 // Gerçekçi noise
+  const noiseLevel = depth / snr * 5 // Realistic noise
   
   const numPoints = 12000
-  const cadence = 0.00139 // ~2 dakika (Kepler long cadence ~30 dakika = 0.02 gün)
+  const cadence = 0.00139 // ~2 minutes (Kepler long cadence ~30 minutes = 0.02 days)
   const totalTime = numPoints * cadence
   const numTransits = Math.floor(totalTime / period)
   
-  console.log(`📊 ${numPoints} nokta, ${numTransits} transit, ${cadence.toFixed(5)} gün cadence`)
+  console.log(`📊 ${numPoints} points, ${numTransits} transits, ${cadence.toFixed(5)} day cadence`)
   
   const sapFlux = []
   const pdcsapFlux = []
@@ -329,7 +329,7 @@ export async function fetchLightCurve(
     // Quality flags (realistic bad data points)
     const quality = Math.random() > 0.98 ? 1 : 0
     
-    // SAP: daha çok noise ve systematik
+    // SAP: more noise and systematics
     const sapFluxValue = flux + redNoise * 1.5 + whiteNoise * 2.0
     sapFlux.push({
       time,
@@ -338,7 +338,7 @@ export async function fetchLightCurve(
       quality
     })
     
-    // PDCSAP: temizlenmiş, daha az noise
+    // PDCSAP: cleaned, less noise
     const pdcsapFluxValue = flux + redNoise * 0.5 + whiteNoise
     pdcsapFlux.push({
       time,
@@ -387,12 +387,12 @@ export async function runBLSAnalysis(
   // KOI gerçek parametreleri
   const truePeriod = koiData?.koi_period || 3.85
   const trueT0 = koiData?.koi_time0bk || 0.5
-  const trueDuration = koiData?.koi_duration || 2.88 // saat
+  const trueDuration = koiData?.koi_duration || 2.88 // hours
   const trueDepth = koiData?.koi_depth ? koiData.koi_depth / 1e6 : 0.01
   const trueSNR = koiData?.koi_model_snr || 15
   
   // Periodogram resolution
-  const step = 0.005 // 0.005 gün resolution
+  const step = 0.005 // 0.005 day resolution
   const periods: number[] = []
   const power: number[] = []
   
@@ -474,7 +474,7 @@ export async function runBLSAnalysis(
   }
 }
 
-// Phase-folded veri oluştur
+// Generate phase-folded data
 export async function foldLightCurve(
   lightCurve: LightCurveData,
   period: number,
@@ -501,7 +501,7 @@ export async function foldLightCurve(
     }
   })
   
-  // Binned veriler oluştur
+  // Generate binned data
   const binned_phase: number[] = []
   const binned_flux: number[] = []
   const binned_err: number[] = []
@@ -546,32 +546,32 @@ export async function predictPlanetCandidate(
   _lightCurve: LightCurveData,
   koiData?: KOIPlanet
 ): Promise<ModelPrediction> {
-  // Gerçek uygulamada TensorFlow.js veya backend ML modeli
+  // In real application: TensorFlow.js or backend ML model
   await new Promise(resolve => setTimeout(resolve, 800))
   
   const { snr, depth, duration } = blsResult
   
-  // Backend'den gelen AI tahminini kullan (öncelikli)
+  // Use AI prediction from backend (priority)
   let baseScore = 0.5
   let usingBackendProbability = false
   
   if (koiData) {
-    // 1. Backend'den gelen probabilities.CONFIRMED değerini kullan (EN ÖNCELİKLİ)
+    // 1. Use probabilities.CONFIRMED value from backend (HIGHEST PRIORITY)
     if (koiData.probabilities?.CONFIRMED !== undefined) {
       baseScore = koiData.probabilities.CONFIRMED
       usingBackendProbability = true
-      console.log('✅ Backend AI probability kullanılıyor:', baseScore)
+      console.log('✅ Using backend AI probability:', baseScore)
     }
     // 2. prediction_probability varsa onu kullan
     else if (koiData.prediction_probability !== undefined && koiData.prediction_probability !== null) {
       baseScore = koiData.prediction_probability
       usingBackendProbability = true
-      console.log('✅ Backend prediction_probability kullanılıyor:', baseScore)
+      console.log('✅ Using backend prediction_probability:', baseScore)
     }
-    // 3. KOI score varsa direkt kullan (0-1 arası)
+    // 3. Use KOI score directly if available (0-1 range)
     else if (koiData.koi_score !== undefined && koiData.koi_score !== null) {
       baseScore = koiData.koi_score
-      console.log('ℹ️ KOI score kullanılıyor:', baseScore)
+      console.log('ℹ️ Using KOI score:', baseScore)
     }
     // 4. Disposition'dan tahmin et (fallback)
     else {
@@ -584,10 +584,10 @@ export async function predictPlanetCandidate(
       } else if (koiData.koi_pdisposition === 'FALSE_POSITIVE') {
         baseScore = 0.15
       }
-      console.log('ℹ️ Disposition\'dan skor hesaplandı:', baseScore)
+      console.log('ℹ️ Score calculated from disposition:', baseScore)
     }
     
-    // False positive flagları varsa skoru düşür (sadece backend skoru yoksa)
+    // Lower score if false positive flags exist (only if no backend score)
     if (!usingBackendProbability && (koiData.koi_fpflag_nt || koiData.koi_fpflag_ss || 
         koiData.koi_fpflag_co || koiData.koi_fpflag_ec)) {
       baseScore *= 0.7
@@ -610,26 +610,26 @@ export async function predictPlanetCandidate(
     disposition = koiData.koi_pdisposition || koiData.koi_disposition || 'UNKNOWN'
     
     if (disposition === 'CONFIRMED') {
-      explanation = `✓ Onaylanmış exoplanet. Kepler katalog verileri transit sinyalini doğruladı. SNR: ${snr.toFixed(1)}, Periyot: ${blsResult.period.toFixed(3)} gün.`
+      explanation = `✓ Confirmed exoplanet. Kepler catalog data verified the transit signal. SNR: ${snr.toFixed(1)}, Period: ${blsResult.period.toFixed(3)} days.`
     } else if (disposition === 'CANDIDATE') {
-      explanation = `Gezegen adayı. Transit sinyali mevcut ancak ek doğrulama gerekli. SNR: ${snr.toFixed(1)}, Derinlik: ${(depth * 1e6).toFixed(0)} ppm.`
+      explanation = `Planet candidate. Transit signal present but additional verification required. SNR: ${snr.toFixed(1)}, Depth: ${(depth * 1e6).toFixed(0)} ppm.`
     } else if (disposition === 'FALSE_POSITIVE') {
-      explanation = `Yanlış pozitif olarak işaretlenmiş. Sinyal muhtemelen stellar aktivite veya ikili yıldız etkisi.`
+      explanation = `Marked as false positive. Signal is likely stellar activity or binary star effect.`
     } else {
-      explanation = `Transit benzeri sinyal tespit edildi. Katalog skoru: ${probability.toFixed(2)}`
+      explanation = `Transit-like signal detected. Catalog score: ${probability.toFixed(2)}`
     }
     
     // Ek bilgiler ekle
     if (koiData.koi_num_transits) {
-      explanation += ` ${koiData.koi_num_transits} transit gözlendi.`
+      explanation += ` ${koiData.koi_num_transits} transits observed.`
     }
   } else {
     if (probability > 0.8) {
-      explanation = 'Güçlü transit sinyali, tutarlı periyot ve uygun derinlik. Yüksek gezegen adayı olasılığı.'
+      explanation = 'Strong transit signal, consistent period and appropriate depth. High planet candidate probability.'
     } else if (probability > 0.5) {
-      explanation = 'Transit benzeri sinyal mevcut, ancak SNR veya şekil özellikleri belirsizlik içeriyor.'
+      explanation = 'Transit-like signal present, but SNR or shape characteristics contain uncertainty.'
     } else {
-      explanation = 'Zayıf sinyal veya stellar aktivite ile karışabilir. Ek doğrulama gerekli.'
+      explanation = 'Weak signal or may be confused with stellar activity. Additional verification required.'
     }
   }
   
@@ -681,7 +681,7 @@ export async function fetchCatalogInfo(
 ): Promise<CatalogInfo> {
   await new Promise(resolve => setTimeout(resolve, 300))
   
-  // KOI verisinden katalog bilgisi oluştur
+  // Generate catalog info from KOI data
   return koiToCatalogInfo(koiData)
 }
 

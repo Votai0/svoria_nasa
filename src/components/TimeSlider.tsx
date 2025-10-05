@@ -9,18 +9,18 @@ type Props = {
 }
 
 export default function TimeSlider({ timeControl, setTimeControl, isVisible, onToggle }: Props) {
-  // 365.25 gün (6 saat ekstra her yıl)
+  // 365.25 days (6 hours extra each year)
   const totalHoursInYear = 365.25 * 24
   const currentHour = (timeControl.currentTime * 24) % totalHoursInYear
   const currentDay = Math.floor(currentHour / 24)
   const currentHourOfDay = Math.floor(currentHour % 24)
   
-  // Input'lar için local state
+  // Local state for inputs
   const [yearInputValue, setYearInputValue] = useState(timeControl.year.toString())
   const [dayInputValue, setDayInputValue] = useState((currentDay + 1).toString())
   const [hourInputValue, setHourInputValue] = useState(currentHourOfDay.toString())
   
-  // timeControl değiştiğinde input'ları sync et
+  // Sync inputs when timeControl changes
   useEffect(() => {
     setYearInputValue(timeControl.year.toString())
   }, [timeControl.year])
@@ -41,7 +41,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
   }
 
   const handleDayInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Sadece input değerini güncelle
+    // Only update input value
     setDayInputValue(e.target.value)
   }
 
@@ -60,12 +60,12 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
   }
 
   const handleDayBlur = () => {
-    // Input'tan çıkınca geçerli değere geri dön
+    // Return to valid value when leaving input
     setDayInputValue((currentDay + 1).toString())
   }
 
   const handleHourInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Sadece input değerini güncelle
+    // Only update input value
     setHourInputValue(e.target.value)
   }
 
@@ -84,22 +84,22 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
   }
 
   const handleHourBlur = () => {
-    // Input'tan çıkınca geçerli değere geri dön
+    // Return to valid value when leaving input
     setHourInputValue(currentHourOfDay.toString())
   }
 
   const handleYearChange = (newYear: number) => {
-    // Gün ve saat değerlerini koru, sadece yılı değiştir
+    // Keep day and hour values, only change year
     setTimeControl(prev => ({ 
       ...prev, 
       year: newYear
-      // currentTime değişmeden kalacak
+      // currentTime will remain unchanged
     }))
     setYearInputValue(newYear.toString())
   }
 
   const handleYearInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Sadece input değerini güncelle, state'i değiştirme
+    // Only update input value, don't change state
     setYearInputValue(e.target.value)
   }
 
@@ -107,7 +107,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
     if (e.key === 'Enter') {
       const year = parseInt(yearInputValue) || timeControl.year
       const clampedYear = Math.max(1900, Math.min(3000, year))
-      // Yıl değiştir ama currentTime'ı koru
+      // Change year but keep currentTime
       setTimeControl(prev => ({ 
         ...prev, 
         year: clampedYear
@@ -117,7 +117,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
   }
 
   const handleYearBlur = () => {
-    // Input'tan çıkınca geçerli değere geri dön
+    // Return to valid value when leaving input
     setYearInputValue(timeControl.year.toString())
   }
 
@@ -146,14 +146,14 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
         }}
-        title={isVisible ? 'Zaman kontrolünü gizle' : 'Zaman kontrolünü göster'}
+        title={isVisible ? 'Hide time control' : 'Show time control'}
       >
         {isVisible ? '×' : '📅'}
       </button>
       
       <div style={{
         position: 'absolute',
-        bottom: 262, // SpeedControlPanel'in üstünde
+        bottom: 262, // Above SpeedControlPanel
         left: isVisible ? 16 : -360,
         zIndex: 100,
         background: 'rgba(15, 15, 30, 0.92)',
@@ -170,7 +170,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
         opacity: isVisible ? 1 : 0,
         pointerEvents: isVisible ? 'auto' : 'none'
       }}>
-      {/* Yıl Seçici */}
+      {/* Year Selector */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -184,7 +184,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
           fontWeight: 600,
           opacity: 0.7
         }}>
-          🗓️ Yıl:
+          🗓️ Year:
         </span>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flex: 1, justifyContent: 'flex-end' }}>
           <button
@@ -248,7 +248,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
         </div>
       </div>
 
-      {/* Başlık ve Konum Göstergesi */}
+      {/* Header and Position Indicator */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -261,7 +261,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
           fontWeight: 700,
           opacity: 0.9
         }}>
-          📅 Yıl İçi Konum
+          📅 Position in Year
         </span>
         <div style={{
           display: 'flex',
@@ -294,7 +294,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
               opacity: timeControl.isPaused ? 0.5 : 1
             }}
           />
-          <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 11 }}>g</span>
+          <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 11 }}>d</span>
           <input
             type="number"
             min="0"
@@ -321,11 +321,11 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
               opacity: timeControl.isPaused ? 0.5 : 1
             }}
           />
-          <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 11 }}>s</span>
+          <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 11 }}>h</span>
         </div>
       </div>
 
-      {/* Zaman Slider - 0-8766 saat arası (365.25 gün × 24 saat) */}
+      {/* Time Slider - Between 0-8766 hours (365.25 days × 24 hours) */}
       <input
         type="range"
         min="0"
@@ -353,15 +353,15 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
         }}
       />
 
-      {/* Alt bilgi */}
+      {/* Footer info */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         fontSize: 9,
         color: 'rgba(255, 255, 255, 0.5)'
       }}>
-        <span>0g</span>
-        <span>365g 6s / yıl</span>
+        <span>0d</span>
+        <span>365d 6h / year</span>
       </div>
 
       <style>{`
@@ -398,7 +398,7 @@ export default function TimeSlider({ timeControl, setTimeControl, isVisible, onT
           box-shadow: 0 4px 12px rgba(16, 185, 129, 0.7);
         }
         
-        /* Number input spin buttons kaldır */
+        /* Remove number input spin buttons */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
           -webkit-appearance: none;

@@ -29,36 +29,36 @@ export default function SearchBar({
   const [isSearchExpanded, setIsSearchExpanded] = useState(false)
   const [exoplanetResults, setExoplanetResults] = useState<ExoplanetTarget[]>([])
   const [isSearching, setIsSearching] = useState(false)
-  const [displayLimit, setDisplayLimit] = useState(50) // İlk gösterilecek KOI sayısı
+  const [displayLimit, setDisplayLimit] = useState(50) // Initial KOI count to display
   
-  // Gezegen referans pozisyonlarını hesapla
+  // Calculate planet reference positions
   const referencePositions = useMemo(() => {
     return calculateAllPlanetPositions(timeControl.year, 0)
   }, [timeControl.year])
 
-  // Gezegen arama sonuçlarını filtrele
+  // Filter planet search results
   const filteredPlanets = planets.filter(planet =>
     planet.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // Exoplanet filtreleme - Client-side (HIZLI!)
+  // Exoplanet filtering - Client-side (FAST!)
   useEffect(() => {
     if (searchQuery.length >= 2) {
       setIsSearching(true)
       const timer = setTimeout(() => {
-        // Mevcut koiTargets'ı filtrele - API çağrısı YOK!
+        // Filter existing koiTargets - NO API call!
         const lowerQuery = searchQuery.toLowerCase()
         const filtered = koiTargets.filter(target => {
           return target.name.toLowerCase().includes(lowerQuery) ||
                  target.id.toLowerCase().includes(lowerQuery)
         })
-        setExoplanetResults(filtered.slice(0, 100)) // İlk 100 sonuç
+        setExoplanetResults(filtered.slice(0, 100)) // First 100 results
         setIsSearching(false)
-      }, 150) // Debounce azaltıldı
+      }, 150) // Reduced debounce
       
       return () => clearTimeout(timer)
     } else if (searchQuery.length === 0 && koiTargets.length > 0 && isSearchExpanded) {
-      // Arama boşken ve panel açıkken yüklenmiş KOI'leri göster
+      // Show loaded KOIs when search is empty and panel is open
       setExoplanetResults(koiTargets.slice(0, displayLimit))
     } else if (!isSearchExpanded) {
       setExoplanetResults([])
@@ -72,7 +72,7 @@ export default function SearchBar({
     const realPosition = referencePositions[planet.name]
     flyToPlanet(controlsRef, planet, timeControl.currentTime, realPosition)
     
-    // Gezegen seçildiğinde exoplanet state'ini temizle ve gezegen bilgisini göster
+    // Clear exoplanet state when planet is selected and show planet info
     onTargetSelect?.(null)
     onPlanetSelect?.(planet)
     
@@ -88,7 +88,7 @@ export default function SearchBar({
 
   return (
     <>
-      {/* Toggle Button - Her zaman görünür */}
+      {/* Toggle Button - Always visible */}
       <button
         onClick={onToggle}
         style={{
@@ -111,7 +111,7 @@ export default function SearchBar({
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
         }}
-        title={isVisible ? 'Aramayı gizle' : 'Aramayı göster'}
+        title={isVisible ? 'Hide search' : 'Show search'}
       >
         {isVisible ? '×' : '🔍'}
       </button>
@@ -128,11 +128,35 @@ export default function SearchBar({
         opacity: isVisible ? 1 : 0,
         pointerEvents: isVisible ? 'auto' : 'none'
       }}>
+        {/* Logo Header */}
+        <div style={{
+          marginBottom: 12,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '12px 16px',
+          background: 'rgba(10, 10, 15, 0.88)',
+          backdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 12,
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+        }}>
+          <img 
+            src="/logo/Logo white.svg" 
+            alt="Svoria" 
+            style={{ 
+              height: 32,
+              width: 'auto',
+              filter: 'drop-shadow(0 2px 8px rgba(147, 51, 234, 0.3))'
+            }} 
+          />
+        </div>
+        
         <div style={{ position: 'relative' }}>
           {/* Search Input */}
           <input
             type="text"
-            placeholder='🔍 Gezegen veya exoplanet ara (TIC, EPIC, KOI)...'
+            placeholder='🔍 Search planet or exoplanet (TIC, EPIC, KOI)...'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsSearchExpanded(true)}
@@ -212,11 +236,11 @@ export default function SearchBar({
                   margin: '0 auto 12px',
                   animation: 'spin 1s linear infinite'
                 }} />
-                {koiLoading ? 'KOI Verileri Yükleniyor...' : 'Aranıyor...'}
+                {koiLoading ? 'Loading KOI Data...' : 'Searching...'}
               </div>
             ) : (
               <>
-                {/* SOLAR SİSTEM GEZEGENLERİ */}
+                {/* SOLAR SYSTEM PLANETS */}
                 {filteredPlanets.length > 0 && (
                   <div style={{ marginBottom: exoplanetResults.length > 0 ? 20 : 0 }}>
                     <div style={{ 
@@ -225,7 +249,7 @@ export default function SearchBar({
                       marginBottom: 12,
                       fontWeight: 600
                     }}>
-                      🪐 SOLAR SİSTEM
+                      🪐 SOLAR SYSTEM
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {filteredPlanets.map((planet) => (
@@ -265,7 +289,7 @@ export default function SearchBar({
                             <div style={{ fontWeight: 600, fontSize: 14 }}>{planet.name}</div>
                             {planet.moons && planet.moons.length > 0 && (
                               <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>
-                                {planet.moons.length} uydu
+                                {planet.moons.length} moon{planet.moons.length !== 1 ? 's' : ''}
                               </div>
                             )}
                           </div>
@@ -276,7 +300,7 @@ export default function SearchBar({
                   </div>
                 )}
 
-                {/* EXOPLANET HEDEFLER */}
+                {/* EXOPLANET TARGETS */}
                 {exoplanetResults.length > 0 && (
                   <div>
                     <div style={{ 
@@ -290,14 +314,14 @@ export default function SearchBar({
                         color: '#888', 
                         fontWeight: 600
                       }}>
-                        🔭 KEPLER KOI EXOPLANETLER
+                        🔭 KEPLER KOI EXOPLANETS
                       </div>
                       <div style={{ 
                         fontSize: 11, 
                         color: '#666',
                         fontWeight: 600
                       }}>
-                        {searchQuery ? exoplanetResults.length + ' sonuç' : `${exoplanetResults.length} / ${koiTargets.length}`}
+                        {searchQuery ? exoplanetResults.length + ' result' + (exoplanetResults.length !== 1 ? 's' : '') : `${exoplanetResults.length} / ${koiTargets.length}`}
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -353,7 +377,7 @@ export default function SearchBar({
                                 fontWeight: 700,
                                 color: 'rgb(134, 239, 172)'
                               }}>
-                                ✓ DOĞRULANDI
+                                ✓ CONFIRMED
                               </div>
                             )}
                           </div>
@@ -368,7 +392,7 @@ export default function SearchBar({
                       ))}
                     </div>
                     
-                    {/* Daha Fazla Yükle Butonu */}
+                    {/* Load More Button */}
                     {!searchQuery && koiTargets.length > displayLimit && exoplanetResults.length < koiTargets.length && (
                       <button
                         onClick={() => setDisplayLimit(prev => prev + 50)}
@@ -392,13 +416,13 @@ export default function SearchBar({
                           e.currentTarget.style.background = 'rgba(147, 51, 234, 0.15)'
                         }}
                       >
-                        ⬇️ Daha Fazla Yükle ({koiTargets.length - displayLimit} kaldı)
+                        ⬇️ Load More ({koiTargets.length - displayLimit} remaining)
                       </button>
                     )}
                   </div>
                 )}
 
-                {/* SONUÇ BULUNAMADI */}
+                {/* NO RESULTS FOUND */}
                 {filteredPlanets.length === 0 && exoplanetResults.length === 0 && searchQuery && (
                   <div style={{ 
                     padding: 20, 
@@ -406,7 +430,7 @@ export default function SearchBar({
                     color: '#888',
                     fontSize: 13
                   }}>
-                    Sonuç bulunamadı
+                    No results found
                   </div>
                 )}
               </>

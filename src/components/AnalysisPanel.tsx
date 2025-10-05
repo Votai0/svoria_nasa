@@ -55,7 +55,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
   // Error state
   const [error, setError] = useState<string | null>(null)
   
-  // 1. Light curve yükle (KOI parametreleri ile) - OTOMATİK PIPELINE
+  // 1. Load light curve (with KOI parameters) - AUTOMATIC PIPELINE
   const handleLoadLightCurve = async () => {
     if (!selectedTarget || !selectedKOI) return
     
@@ -63,34 +63,34 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     setIsLoadingLC(true)
     
     try {
-      // KOI parametrelerini kullanarak işık eğrisi üret
+      // Generate light curve using KOI parameters
       const data = await fetchLightCurve(selectedTarget.id, dataType, undefined, selectedKOI)
       setLightCurve(data)
       
-      console.log('📈 Işık eğrisi yüklendi:', {
+      console.log('📈 Light curve loaded:', {
         period: selectedKOI.koi_period,
         depth: selectedKOI.koi_depth,
         duration: selectedKOI.koi_duration,
         snr: selectedKOI.koi_model_snr
       })
       
-      // Katalog bilgilerini KOI verisinden oluştur (paralel)
+      // Generate catalog info from KOI data (parallel)
       setIsLoadingCatalog(true)
       const catalog = await fetchCatalogInfo(selectedTarget.id, selectedKOI)
       setCatalogInfo(catalog)
       setIsLoadingCatalog(false)
       
-      // OTOMATİK: BLS analizi başlat
+      // AUTOMATIC: Start BLS analysis
       setIsLoadingBLS(true)
       const blsResult = await runBLSAnalysis(data, selectedKOI)
       setPeriodogram(blsResult)
       
-      console.log('📈 BLS analizi tamamlandı:', {
+      console.log('📈 BLS analysis completed:', {
         bestPeriod: blsResult.bestPeriods[0]?.period,
         koiCatalogPeriod: selectedKOI.koi_period
       })
       
-      // OTOMATİK: En iyi periyodu seç ve foldla
+      // AUTOMATIC: Select best period and fold
       if (blsResult.bestPeriods.length > 0) {
         const bestPeriod = blsResult.bestPeriods[0]
         setSelectedPeriod(bestPeriod)
@@ -105,15 +105,15 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
         setPhaseFolded(folded)
         setIsLoadingFolded(false)
         
-        console.log('🌓 Faz katlaması tamamlandı')
+        console.log('🌓 Phase folding completed')
         
-        // OTOMATİK: AI tahmin yap
+        // AUTOMATIC: Make AI prediction
         setIsLoadingPrediction(true)
         const pred = await predictPlanetCandidate(bestPeriod, data, selectedKOI)
         setPrediction(pred)
         setIsLoadingPrediction(false)
         
-        console.log('🤖 AI Tahmini:', {
+        console.log('🤖 AI Prediction:', {
           probability: pred.probability,
           disposition: selectedKOI.koi_pdisposition,
           confidence: pred.confidence
@@ -123,7 +123,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
       setIsLoadingBLS(false)
       
     } catch (err) {
-      setError('Analiz pipeline hatası: ' + (err as Error).message)
+      setError('Analysis pipeline error: ' + (err as Error).message)
       console.error(err)
       setIsLoadingLC(false)
       setIsLoadingBLS(false)
@@ -135,7 +135,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     }
   }
   
-  // 2. BLS analizi (KOI periyodu referans alınarak)
+  // 2. BLS analysis (referenced to KOI period)
   const handleRunBLS = async () => {
     if (!lightCurve || !selectedKOI) return
     
@@ -144,29 +144,29 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     setActiveTab('periodogram')
     
     try {
-      // KOI verisi ile BLS analizi
+      // BLS analysis with KOI data
       const result = await runBLSAnalysis(lightCurve, selectedKOI)
       setPeriodogram(result)
       
-      // En iyi periyodu otomatik seç (KOI katalog periyodu olacak)
+      // Automatically select best period (will be KOI catalog period)
       if (result.bestPeriods.length > 0) {
         handleSelectPeriod(result.bestPeriods[0])
       }
       
-      console.log('📈 BLS analizi tamamlandı:', {
+      console.log('📈 BLS analysis completed:', {
         bestPeriod: result.bestPeriods[0]?.period,
         koiCatalogPeriod: selectedKOI.koi_period,
         match: Math.abs((result.bestPeriods[0]?.period || 0) - (selectedKOI.koi_period || 0)) < 0.01
       })
     } catch (err) {
-      setError('BLS analizi başarısız oldu')
+      setError('BLS analysis failed')
       console.error(err)
     } finally {
       setIsLoadingBLS(false)
     }
   }
   
-  // 3. Periyot seç ve foldla
+  // 3. Select period and fold
   const handleSelectPeriod = async (period: BLSResult) => {
     if (!lightCurve) return
     
@@ -183,14 +183,14 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
       )
       setPhaseFolded(folded)
     } catch (err) {
-      setError('Faz katlaması başarısız oldu')
+      setError('Phase folding failed')
       console.error(err)
     } finally {
       setIsLoadingFolded(false)
     }
   }
   
-  // 4. AI tahmini (KOI katalog verisiyle)
+  // 4. AI prediction (with KOI catalog data)
   const handlePredict = async () => {
     if (!selectedPeriod || !lightCurve) return
     
@@ -199,25 +199,25 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     setActiveTab('model')
     
     try {
-      // KOI verisini kullanarak AI tahmini
+      // AI prediction using KOI data
       const result = await predictPlanetCandidate(selectedPeriod, lightCurve, selectedKOI || undefined)
       setPrediction(result)
       
-      console.log('🤖 AI Tahmini:', {
+      console.log('🤖 AI Prediction:', {
         probability: result.probability,
         disposition: selectedKOI?.koi_pdisposition,
         confirmed: selectedKOI?.koi_disposition,
         confidence: result.confidence
       })
     } catch (err) {
-      setError('AI tahmini başarısız oldu')
+      setError('AI prediction failed')
       console.error(err)
     } finally {
       setIsLoadingPrediction(false)
     }
   }
   
-  // Hedef değiştiğinde sıfırla
+  // Reset when target changes
   const resetAnalysis = () => {
     setLightCurve(null)
     setPeriodogram(null)
@@ -229,14 +229,14 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
     setActiveTab('lightcurve')
   }
   
-  // Gezegen seçildiğinde analiz verilerini temizle
+  // Clear analysis data when planet is selected
   useEffect(() => {
     if (selectedPlanet) {
       resetAnalysis()
     }
   }, [selectedPlanet])
   
-  // Hedef değişimini izle - KOI verisi varsa otomatik yükle
+  // Monitor target changes - auto-load if KOI data exists
   const currentTargetId = selectedTarget?.id
   const prevTargetId = lightCurve?.targetId
   if (currentTargetId && currentTargetId !== prevTargetId && !isLoadingLC && selectedKOI) {
@@ -245,11 +245,11 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
   }
   
   const tabs: { id: AnalysisTab; label: string; icon: string; disabled?: boolean }[] = [
-    { id: 'lightcurve', label: 'Işık Eğrisi', icon: '📊' },
+    { id: 'lightcurve', label: 'Light Curve', icon: '📊' },
     { id: 'periodogram', label: 'Periodogram', icon: '📈', disabled: !periodogram },
-    { id: 'folded', label: 'Katlanmış', icon: '🌓', disabled: !phaseFolded },
-    { id: 'model', label: 'AI Tahmin', icon: '🤖', disabled: !prediction },
-    { id: 'catalog', label: 'Katalog', icon: '📚', disabled: !catalogInfo }
+    { id: 'folded', label: 'Folded', icon: '🌓', disabled: !phaseFolded },
+    { id: 'model', label: 'AI Predict', icon: '🤖', disabled: !prediction },
+    { id: 'catalog', label: 'Catalog', icon: '📚', disabled: !catalogInfo }
   ]
   
   return (
@@ -277,7 +277,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
         }}
-        title={isVisible ? 'Paneli gizle' : 'Paneli göster'}
+        title={isVisible ? 'Hide panel' : 'Show panel'}
       >
         {isVisible ? '×' : '📊'}
       </button>
@@ -301,7 +301,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
         opacity: isVisible ? 1 : 0,
         pointerEvents: isVisible ? 'auto' : 'none'
       }}>
-      {/* Header Section - Sadece exoplanet seçiliyken göster */}
+      {/* Header Section - Only show when exoplanet is selected */}
       {!selectedPlanet && (
         <div style={{
           padding: '20px 24px 16px',
@@ -494,7 +494,7 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
               margin: '0 auto',
               lineHeight: 1.5
             }}>
-              Bir exoplanet veya gezegen seçin
+              Select an exoplanet or planet
             </div>
           </div>
         ) : (
@@ -627,21 +627,21 @@ export default function AnalysisPanel({ selectedTarget, selectedKOI, selectedPla
   )
 }
 
-// Gezegen bilgi içeriği
+// Planet info content
 function PlanetInfoContent({ planet }: { planet: Planet }) {
   const getPlanetDescription = (name: string): string => {
     const descriptions: Record<string, string> = {
-      'Güneş': 'Güneş sistemimizin merkezindeki yıldız. 4.6 milyar yıllık ve hidrojen füzyonu ile enerji üretiyor.',
-      'Merkür': 'Güneş\'e en yakın gezegen. Gündüz sıcaklığı 430°C\'ye ulaşırken, gece -180°C\'ye düşüyor.',
-      'Venüs': 'Güneş sisteminin en sıcak gezegeni. Yoğun atmosferi sera etkisi oluşturarak 470°C\'ye çıkıyor.',
-      'Dünya': 'Bilinen tek yaşanabilir gezegen. %71\'i su ile kaplı ve koruyucu bir atmosfere sahip.',
-      'Mars': 'Kızıl gezegen. Demir oksit nedeniyle kırmızı renkli. Geçmişte sıvı su bulunduğu düşünülüyor.',
-      'Jüpiter': 'Güneş sisteminin en büyük gezegeni. Dev bir gaz gezegeni ve güçlü manyetik alana sahip.',
-      'Satürn': 'İhtişamlı halkaları ile ünlü. Halkalar buz ve kaya parçacıklarından oluşuyor.',
-      'Uranüs': 'Yanlamasına dönen ilginç bir gezegen. Mavi-yeşil rengi metan gazından kaynaklanıyor.',
-      'Neptün': 'Güneşten en uzak gezegen. 2,000 km/sa hıza ulaşan rüzgarları var.'
+      'Sun': 'The star at the center of our solar system. 4.6 billion years old and produces energy through hydrogen fusion.',
+      'Mercury': 'The closest planet to the Sun. Daytime temperature reaches 430°C, while it drops to -180°C at night.',
+      'Venus': 'The hottest planet in the solar system. Its dense atmosphere creates a greenhouse effect raising temp to 470°C.',
+      'Earth': 'The only known habitable planet. 71% covered with water and has a protective atmosphere.',
+      'Mars': 'The red planet. Reddish due to iron oxide. Believed to have had liquid water in the past.',
+      'Jupiter': 'The largest planet in the solar system. A giant gas planet with a powerful magnetic field.',
+      'Saturn': 'Famous for its magnificent rings. The rings are made of ice and rock particles.',
+      'Uranus': 'An interesting planet that rotates on its side. Its blue-green color comes from methane gas.',
+      'Neptune': 'The farthest planet from the Sun. Has winds reaching speeds of 2,000 km/h.'
     }
-    return descriptions[name] || 'Bu gök cismi hakkında detaylı bilgi mevcut değil.'
+    return descriptions[name] || 'Detailed information about this celestial body is not available.'
   }
 
   const formatOrbitalPeriod = (orbitSpeed: number): string => {
@@ -650,11 +650,11 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
     
     if (periodInYears < 1) {
       const days = Math.round(periodInYears * 365.25)
-      return `${days} gün`
+      return `${days} day${days !== 1 ? 's' : ''}`
     } else if (periodInYears < 2) {
-      return '1 yıl'
+      return '1 year'
     } else {
-      return `${periodInYears.toFixed(1)} yıl`
+      return `${periodInYears.toFixed(1)} years`
     }
   }
 
@@ -664,11 +664,11 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
     
     if (absPeriod < 1) {
       const hours = Math.round(absPeriod * 24)
-      return `~${hours} saat${isRetrograde ? ' (ters yönde)' : ''}`
+      return `~${hours} hour${hours !== 1 ? 's' : ''}${isRetrograde ? ' (retrograde)' : ''}`
     } else if (absPeriod === 1) {
-      return '1 gün'
+      return '1 day'
     } else {
-      return `${absPeriod.toFixed(1)} gün${isRetrograde ? ' (ters yönde)' : ''}`
+      return `${absPeriod.toFixed(1)} days${isRetrograde ? ' (retrograde)' : ''}`
     }
   }
 
@@ -678,7 +678,7 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
       overflowY: 'auto',
       padding: '24px'
     }}>
-      {/* Gezegen adı */}
+      {/* Planet name */}
       <div style={{
         fontSize: 28,
         fontWeight: 700,
@@ -690,7 +690,7 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
         {planet.name}
       </div>
 
-      {/* Açıklama */}
+      {/* Description */}
       <p style={{
         fontSize: 14,
         lineHeight: 1.6,
@@ -700,17 +700,17 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
         {getPlanetDescription(planet.name)}
       </p>
 
-      {/* Özellikler */}
+      {/* Properties */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {planet.distance > 0 && (
           <>
             <InfoRow
-              label="Güneş'e Uzaklık"
+              label="Distance from Sun"
               value={`${planet.distance} AU`}
               color="#FFD700"
             />
             <InfoRow
-              label="Yörünge Periyodu"
+              label="Orbital Period"
               value={formatOrbitalPeriod(planet.orbitSpeed)}
               color="#FFA500"
             />
@@ -718,29 +718,29 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
         )}
 
         <InfoRow
-          label="Dönüş Periyodu"
+          label="Rotation Period"
           value={formatRotationPeriod(planet.rotationPeriod)}
           color="#87CEEB"
         />
 
         {planet.moons && planet.moons.length > 0 && (
           <InfoRow
-            label="Uydu Sayısı"
-            value={`${planet.moons.length} uydu`}
+            label="Number of Moons"
+            value={`${planet.moons.length} moon${planet.moons.length !== 1 ? 's' : ''}`}
             color="#DDA0DD"
           />
         )}
 
         {planet.hasRings && (
           <InfoRow
-            label="Özel Özellik"
-            value="Halka sistemi"
+            label="Special Feature"
+            value="Ring system"
             color="#F0E68C"
           />
         )}
       </div>
 
-      {/* Uydular */}
+      {/* Moons */}
       {planet.moons && planet.moons.length > 0 && (
         <div style={{ marginTop: 24 }}>
           <h3 style={{
@@ -749,7 +749,7 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
             marginBottom: 12,
             color: 'rgba(255, 255, 255, 0.9)'
           }}>
-            Uydular
+            Moons
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {planet.moons.map((moon, idx) => (
@@ -766,7 +766,7 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
               >
                 <span style={{ fontWeight: 600, color: '#fff' }}>{moon.name}</span>
                 {' • '}
-                <span>Yörünge: {formatOrbitalPeriod(moon.orbitSpeed)}</span>
+                <span>Orbit: {formatOrbitalPeriod(moon.orbitSpeed)}</span>
               </div>
             ))}
           </div>
@@ -776,7 +776,7 @@ function PlanetInfoContent({ planet }: { planet: Planet }) {
   )
 }
 
-// Bilgi satırı
+// Info row
 function InfoRow({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div style={{

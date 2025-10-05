@@ -42,7 +42,7 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
         }}
-        title={isVisible ? 'Hız kontrolünü gizle' : 'Hız kontrolünü göster'}
+        title={isVisible ? 'Hide speed control' : 'Show speed control'}
       >
         {isVisible ? '×' : '⚡'}
       </button>
@@ -64,7 +64,7 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
         opacity: isVisible ? 1 : 0,
         pointerEvents: isVisible ? 'auto' : 'none'
       }}>
-      {/* Başlık */}
+      {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -77,7 +77,7 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
           fontWeight: 700,
           opacity: 0.9
         }}>
-          ⚡ Simülasyon Hızı
+          ⚡ Simulation Speed
         </span>
         <button
           onClick={togglePause}
@@ -100,18 +100,18 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
             gap: 6
           }}
         >
-          {timeControl.isPaused ? '▶️ Oynat' : '⏸️ Durdur'}
+          {timeControl.isPaused ? '▶️ Play' : '⏸️ Pause'}
         </button>
       </div>
 
-      {/* Hız Göstergesi */}
+      {/* Speed Indicator */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 10
       }}>
-        <span style={{ color: '#aaa', fontSize: 11 }}>Hız Çarpanı</span>
+        <span style={{ color: '#aaa', fontSize: 11 }}>Speed Multiplier</span>
         <span style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           padding: '5px 12px',
@@ -127,7 +127,7 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
         </span>
       </div>
 
-      {/* Slider - 0.01x ile 50x arası hassas kontrol */}
+      {/* Slider - Precise control between 0.01x and 50x */}
       <input
         type="range"
         min="0.01"
@@ -155,15 +155,15 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
         }}
       />
 
-      {/* Preset Butonları - Detaylı kontrol */}
+      {/* Preset Buttons - Detailed control */}
       <div style={{ whiteSpace: 'nowrap' }}>
   {[
-    { label: '0.01×', value: 0.01, hint: 'Ultra yavaş - Gerçek zamana yakın' },
-    { label: '0.1×', value: 0.1, hint: '10x yavaş - İç gezegenler' },
-    { label: '0.5×', value: 0.5, hint: 'Yarı hız - Detaylı gözlem' },
-    { label: '1×', value: 1, hint: 'Normal hız' },
-    { label: '10×', value: 10, hint: '10x hızlı - Orta gezegenler' },
-    { label: '50×', value: 50, hint: 'Maksimum - Dış gezegenler' }
+    { label: '0.01×', value: 0.01, hint: 'Ultra slow - Close to real time' },
+    { label: '0.1×', value: 0.1, hint: '10x slow - Inner planets' },
+    { label: '0.5×', value: 0.5, hint: 'Half speed - Detailed observation' },
+    { label: '1×', value: 1, hint: 'Normal speed' },
+    { label: '10×', value: 10, hint: '10x fast - Middle planets' },
+    { label: '50×', value: 50, hint: 'Maximum - Outer planets' }
   ].map((preset, idx, arr) => (
     <button
       key={preset.value}
@@ -201,7 +201,7 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
 
 
 
-{/* Açıklama - Dinamik */}
+{/* Description - Dynamic */}
 <div style={{
   marginTop: 10,
   padding: '8px 10px',
@@ -227,32 +227,22 @@ export default function SpeedControlPanel({ timeControl, setTimeControl, isVisib
       ? 'rgba(251, 191, 36, 1)'
       : 'rgba(99, 102, 241, 1)' 
   }}>
-    {timeControl.speed < 0.1 ? '🐌 Ultra Yavaş:' : timeControl.speed < 1 ? '🔍 Detaylı:' : '⚡ Hızlı:'}
+    {timeControl.speed < 0.1 ? '🐌 Ultra Slow:' : timeControl.speed < 1 ? '🔍 Detailed:' : '⚡ Fast:'}
   </strong> {
     timeControl.speed < 0.1 
-      ? 'Merkür\'ün günlük hareketini görebilirsiniz!' 
+      ? 'You can see Mercury\'s daily movement!' 
       : timeControl.speed < 1
-      ? 'İç gezegenlerin (Merkür, Venüs, Dünya) hareketleri izlenebilir.'
+      ? 'Inner planet movements (Mercury, Venus, Earth) can be tracked.'
       : timeControl.speed < 10
-      ? 'Mars ve Jüpiter\'i rahatça gözlemleyin.'
+      ? 'Observe Mars and Jupiter comfortably.'
       : timeControl.speed <= 50
-      ? 'Dış gezegenler (Satürn, Uranüs, Neptün) için ideal hız.'
-      : 'Maksimum hız: Neptün\'ün yörüngesini izleyin!'
+      ? 'Ideal speed for outer planets (Saturn, Uranus, Neptune).'
+      : 'Maximum speed: Watch Neptune\'s orbit!'
   }
 </div>
 
 
       <style>{`
-        .speed-slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
-          transition: all 0.2s;
-        }
         .speed-slider::-webkit-slider-thumb:hover {
           transform: scale(1.2);
           box-shadow: 0 4px 12px rgba(102, 126, 234, 0.7);

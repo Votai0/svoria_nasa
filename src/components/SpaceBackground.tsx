@@ -3,19 +3,19 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useRef } from 'react'
 import * as THREE from 'three'
 
-// Uzay Arka Planı bileşeni - 50 AU'dan sonra texture kaybolur
+// Space Background component - texture disappears after 50 AU
 export default function SpaceBackground() {
   const spaceTexture = useTexture('/textures/stars/8k_stars_milky_way.jpg')
   const { camera } = useThree()
   const textureRef = useRef<THREE.Mesh>(null)
   const blackRef = useRef<THREE.Mesh>(null)
   
-  // Kamera mesafesini takip et - 50 AU = 500 sahne birimi
+  // Track camera distance - 50 AU = 500 scene units
   useFrame(() => {
-    const cameraDistance = camera.position.length() // Güneş'ten (0,0,0) uzaklık
+    const cameraDistance = camera.position.length() // Distance from Sun (0,0,0)
     const shouldShowTexture = cameraDistance < 500 // 50 AU = 500 sahne birimi (DISTANCE_SCALE = 10)
     
-    // Mesh visibility'sini direkt değiştir (state kullanma, re-render yok)
+    // Directly change mesh visibility (no state, no re-render)
     if (textureRef.current) {
       textureRef.current.visible = shouldShowTexture
     }
@@ -26,7 +26,7 @@ export default function SpaceBackground() {
   
   return (
     <>
-      {/* Texture'lı yıldızlı uzay (yakın mesafe) */}
+      {/* Textured starry space (close distance) */}
       <mesh ref={textureRef}>
         <sphereGeometry args={[500, 64, 64]} />
         <meshBasicMaterial 
@@ -36,7 +36,7 @@ export default function SpaceBackground() {
         />
       </mesh>
       
-      {/* Siyah boşluk (uzak mesafe) */}
+      {/* Black void (far distance) */}
       <mesh ref={blackRef} visible={false}>
         <sphereGeometry args={[50000, 32, 32]} />
         <meshBasicMaterial 

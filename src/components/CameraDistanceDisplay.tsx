@@ -8,11 +8,11 @@ import type { TimeControl } from '../types'
 const API_BASE_URL = import.meta.env.VITE_KEPLER_API_URL || '/api'
 
 // 1 AU = 149,597,870.7 km
-// 1 ışık yılı = 9,460,730,472,580.8 km
-// 1 AU = 0.0000158125 ışık yılı
+// 1 light year = 9,460,730,472,580.8 km
+// 1 AU = 0.0000158125 light years
 const AU_TO_LIGHT_YEARS = 0.0000158125
 
-// Sahne birimini AU'ya çevir (DISTANCE_SCALE = 10)
+// Convert scene units to AU (DISTANCE_SCALE = 10)
 const SCENE_UNITS_TO_AU = 0.1
 
 type Props = {
@@ -20,41 +20,41 @@ type Props = {
   onDistanceChange: (distance: number) => void
 }
 
-// Canvas içinde çalışan tracker bileşeni
+// Tracker component running inside Canvas
 export function CameraDistanceTracker({ timeControl, onDistanceChange }: Props) {
   const { camera } = useThree()
 
   useFrame(() => {
-    // Dünya'nın pozisyonunu hesapla
-    // Dünya Güneş'ten 10 birim uzaklıkta (1 AU * 10)
+    // Calculate Earth's position
+    // Earth is 10 units away from the Sun (1 AU * 10)
     const earthDistance = 10 // REAL_DISTANCES_AU.earth * DISTANCE_SCALE
     
-    // Zaman kontrolüne göre Dünya'nın açısını hesapla
-    // Dünya'nın yörünge periyodu 365.25 gün
+    // Calculate Earth's angle according to time control
+    // Earth's orbital period is 365.25 days
     const orbitalPeriodInDays = 365.25
     const angle = ((timeControl.currentTime % orbitalPeriodInDays) / orbitalPeriodInDays) * (2 * Math.PI) + 2.1 // startAngle = 2.1
     
-    // Dünya'nın 3D pozisyonu
+    // Earth's 3D position
     const earthPos = new Vector3(
       Math.cos(angle) * earthDistance,
       0,
       Math.sin(angle) * earthDistance
     )
     
-    // Kamera ile Dünya arasındaki mesafe
+    // Distance between camera and Earth
     const distanceInSceneUnits = camera.position.distanceTo(earthPos)
     
-    // Sahne birimlerini AU'ya, sonra ışık yılına çevir
+    // Convert scene units to AU, then to light years
     const distanceInAU = distanceInSceneUnits * SCENE_UNITS_TO_AU
     const distanceInLightYears = distanceInAU * AU_TO_LIGHT_YEARS
     
     onDistanceChange(distanceInLightYears)
   })
 
-  return null // Canvas içinde render edilecek ama UI olarak görünmeyecek
+  return null // Will be rendered inside Canvas but won't be visible as UI
 }
 
-// Canvas dışında kullanılacak UI bileşeni
+// UI component to be used outside Canvas
 export default function CameraDistanceDisplay({ distance, isVisible, onToggle }: { 
   distance: number
   isVisible: boolean
@@ -87,14 +87,14 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
       }
 
       const result = await response.json()
-      setUploadStatus('✅ Yüklendi!')
+      setUploadStatus('✅ Uploaded!')
       console.log('Train CSV uploaded:', result)
       
-      // 2 saniye sonra mesajı temizle
+      // Clear message after 2 seconds
       setTimeout(() => setUploadStatus(null), 2000)
     } catch (error) {
       console.error('Upload error:', error)
-      setUploadStatus('❌ Hata!')
+      setUploadStatus('❌ Error!')
       setTimeout(() => setUploadStatus(null), 3000)
     } finally {
       setIsUploading(false)
@@ -130,7 +130,7 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
         }}
-        title={isVisible ? 'Mesafe göstergesini gizle' : 'Mesafe göstergesini göster'}
+        title={isVisible ? 'Hide distance indicator' : 'Show distance indicator'}
       >
         {isVisible ? '×' : '📍'}
       </button>
@@ -163,7 +163,7 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
       >
         <div>
           <div style={{ color: '#4A90E2', marginBottom: '4px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Dünya'dan Uzaklık
+            Distance from Earth
           </div>
           <div style={{ fontSize: '18px', color: '#fff' }}>
             {distance < 0.00001 
@@ -172,7 +172,7 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
               ? (distance * 63241.077).toFixed(2) + ' AU'
               : distance < 1
               ? (distance * 63241.077).toFixed(1) + ' AU'
-              : distance.toFixed(3) + ' ışık yılı'
+              : distance.toFixed(3) + ' light years'
             }
           </div>
         </div>
@@ -218,7 +218,7 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
               }
             }}
           >
-            {isUploading ? '⏳ Yükleniyor...' : '📄 Add Train CSV'}
+            {isUploading ? '⏳ Uploading...' : '📄 Add Train CSV'}
           </label>
           
           {/* Upload Status */}
@@ -235,13 +235,13 @@ export default function CameraDistanceDisplay({ distance, isVisible, onToggle }:
         </div>
       </div>
 
-      {/* Model Performance Button */}
+      {/* Model Performance Button - Next to Distance Display */}
       <button
         onClick={() => navigate('/model-performance')}
         style={{
           position: 'absolute',
           bottom: 20,
-          left: isVisible ? 'calc(50% + 320px)' : 'calc(50% + 160px)',
+          left: isVisible ? 'calc(50% - 300px)' : 'calc(50% - 180px)',
           transform: 'translateX(-50%)',
           zIndex: 100,
           padding: '12px 20px',

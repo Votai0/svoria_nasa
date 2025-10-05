@@ -21,29 +21,29 @@ import ExoplanetMarker from './components/ExoplanetMarker'
 export default function App() {
   const controlsRef = useRef<CameraControlsImpl | null>(null)
   
-  // Zaman kontrolleri - Günümüzden başlat (4 Ekim 2025)
+  // Time controls - Start from current day (October 4, 2025)
   const currentYear = 2025
-  const currentDayOfYear = 277 // 4 Ekim
+  const currentDayOfYear = 277 // October 4
   
   const [timeControl, setTimeControl] = useState<TimeControl>({
-    speed: 0.5, // Başlangıç hızı 0.5x - daha detaylı gözlem için
+    speed: 0.5, // Initial speed 0.5x - for more detailed observation
     isPaused: false,
     currentTime: currentDayOfYear,
     year: currentYear
   })
   
-  // Seçili exoplanet hedefi
+  // Selected exoplanet target
   const [selectedTarget, setSelectedTarget] = useState<ExoplanetTarget | null>(null)
   const [selectedKOI, setSelectedKOI] = useState<KOIPlanet | null>(null)
   const [sector, setSector] = useState<number | undefined>(undefined)
   
-  // Seçili gezegen
+  // Selected planet
   const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null)
   
-  // Kamera mesafesi (Dünya'dan ışık yılı cinsinden)
+  // Camera distance (from Earth in light years)
   const [cameraDistance, setCameraDistance] = useState(0)
   
-  // KOI planetlerini otomatik yükle - Progressive loading (1000'lik batch'lerle)
+  // Auto-load KOI planets - Progressive loading (in batches of 1000)
   const { 
     planets: koiPlanets, 
     loading: koiLoading, 
@@ -56,7 +56,7 @@ export default function App() {
   })
   const { stats: koiStats } = useKOIStatistics()
   
-  // KOI verilerini ExoplanetTarget formatına çevir
+  // Convert KOI data to ExoplanetTarget format
   const [koiTargets, setKoiTargets] = useState<ExoplanetTarget[]>([])
   
   useEffect(() => {
@@ -70,18 +70,18 @@ export default function App() {
         confirmed: koi.koi_pdisposition === 'CONFIRMED'
       }))
       setKoiTargets(targets)
-      console.log('✅ KOI Planetleri yüklendi:', targets.length, 'gezegen')
-      console.log('📊 İstatistikler:', koiStats)
+      console.log('✅ KOI Planets loaded:', targets.length, 'planets')
+      console.log('📊 Statistics:', koiStats)
     }
     if (koiError) {
-      console.error('❌ KOI verileri yüklenemedi:', koiError.message)
+      console.error('❌ KOI data could not be loaded:', koiError.message)
     }
   }, [koiPlanets, koiStats, koiError])
   
-  // KOI status popup görünürlük kontrolü
+  // KOI status popup visibility control
   const [koiStatusDismissed, setKoiStatusDismissed] = useState(false)
   
-  // Panel görünürlük kontrolü
+  // Panel visibility control
   const [panelsVisible, setPanelsVisible] = useState({
     search: true,
     speedControl: true,
@@ -94,7 +94,7 @@ export default function App() {
     setPanelsVisible(prev => ({ ...prev, [panel]: !prev[panel] }))
   }
   
-  // Gezegen pozisyonlarını hesapla (yıl değiştiğinde güncellenir)
+  // Calculate planet positions (updated when year changes)
   const [referencePositions, setReferencePositions] = useState(() => 
     calculateAllPlanetPositions(timeControl.year, 0)
   )
@@ -103,7 +103,7 @@ export default function App() {
     setReferencePositions(calculateAllPlanetPositions(timeControl.year, 0))
   }, [timeControl.year])
   
-  // URL parametrelerinden hedef yükle (koiTargets yüklendikten sonra)
+  // Load target from URL parameters (after koiTargets are loaded)
   useEffect(() => {
     if (koiTargets.length > 0) {
       const params = parseURLParams()
@@ -117,19 +117,19 @@ export default function App() {
     }
   }, [koiTargets])
   
-  // Hedef seçildiğinde tam KOI verisini bul
+  // Find full KOI data when target is selected
   useEffect(() => {
     if (selectedTarget && koiPlanets.length > 0) {
       const kepid = parseInt(selectedTarget.id.replace('KOI-', ''))
       const fullKOI = koiPlanets.find(koi => koi.kepid === kepid)
       setSelectedKOI(fullKOI || null)
-      console.log('🎯 Seçili KOI:', fullKOI)
+      console.log('🎯 Selected KOI:', fullKOI)
     } else {
       setSelectedKOI(null)
     }
   }, [selectedTarget, koiPlanets])
   
-  // Hedef değiştiğinde URL'yi güncelle
+  // Update URL when target changes
   useEffect(() => {
     if (selectedTarget) {
       updateURLParams({
@@ -142,7 +142,7 @@ export default function App() {
     }
   }, [selectedTarget, sector])
   
-  // Gezegen seçildiğinde kamerayı odakla
+  // Focus camera when planet is selected
   useEffect(() => {
     if (selectedPlanet && controlsRef.current) {
       const planet = planets.find(p => p.name === selectedPlanet.name)
@@ -153,16 +153,16 @@ export default function App() {
     }
   }, [selectedPlanet])
 
-  // Exoplanet seçildiğinde kamerayı o yöne çevir (sadece hedef değiştiğinde)
+  // Turn camera to that direction when exoplanet is selected (only when target changes)
   const [lastFlyTarget, setLastFlyTarget] = useState<string | null>(null)
   
   useEffect(() => {
     if (selectedTarget && controlsRef.current && lastFlyTarget !== selectedTarget.id) {
-      const direction = raDecToDir(selectedTarget.ra / 15, selectedTarget.dec) // RA: derece -> saat
-      lookAtDirection(controlsRef, direction, 1500) // Sadece bakış açısını değiştir
+      const direction = raDecToDir(selectedTarget.ra / 15, selectedTarget.dec) // RA: degrees -> hours
+      lookAtDirection(controlsRef, direction, 1500) // Only change viewing angle
       setLastFlyTarget(selectedTarget.id)
     }
-    // Hedef kaldırıldığında sıfırla
+    // Reset when target is removed
     if (!selectedTarget && lastFlyTarget !== null) {
       setLastFlyTarget(null)
     }
@@ -180,13 +180,13 @@ export default function App() {
         controlsRef={controlsRef}
         onTargetSelect={(target) => {
           setSelectedTarget(target)
-          // Exoplanet seçildiğinde gezegen seçimini temizle
+          // Clear planet selection when exoplanet is selected
           if (target) {
             setSelectedPlanet(null)
           }
         }}
         onPlanetSelect={(planet) => {
-          // SearchBar'dan gezegen seçildiğinde gezegen bilgisini göster ve exoplanet seçimini temizle
+          // Show planet info when planet is selected from SearchBar and clear exoplanet selection
           setSelectedPlanet(planet)
           setSelectedKOI(null)
         }}
@@ -236,23 +236,22 @@ export default function App() {
             e.currentTarget.style.transform = 'scale(1)'
             e.currentTarget.style.opacity = '1'
           }}
-          title="Kapat"
+            title="Close KOI Data Status"
         >
         {koiLoading ? (
           <>
             <div style={{
               width: 12,
-              height: 12,
               border: '2px solid rgba(234, 179, 8, 0.3)',
               borderTop: '2px solid rgba(234, 179, 8, 1)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }} />
-            İlk Batch Yükleniyor...
+            Loading Initial Batch...
           </>
         ) : koiError ? (
           <>
-            ❌ KOI API Hatası
+            ❌ KOI API Error
           </>
         ) : koiLoadingMore ? (
           <>
@@ -264,14 +263,14 @@ export default function App() {
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }} />
-            ✅ {loadedCount.toLocaleString()} / Arka planda yükleniyor...
+            ✅ {loadedCount.toLocaleString()} / Loading in background...
           </>
         ) : (
           <>
-            ✅ {koiPlanets.length.toLocaleString()} KOI Gezegen
+            ✅ {koiPlanets.length.toLocaleString()} KOI Planets
             {totalCount && totalCount > koiPlanets.length && (
               <span style={{ fontSize: 10, opacity: 0.7 }}>
-                {' '}(+{(totalCount - koiPlanets.length).toLocaleString()} daha)
+                {' '}(+{(totalCount - koiPlanets.length).toLocaleString()} more)
               </span>
             )}
           </>
@@ -279,12 +278,12 @@ export default function App() {
         </div>
       )}
 
-      {/* Canvas - Ana 3D Sahne */}
+      {/* Canvas - Main 3D Scene */}
       <Canvas
         camera={{ fov: 50, position: [0, 15, 30] }}
         gl={{ antialias: true }}
       >
-        {/* Kamera kontrolleri */}
+        {/* Camera controls */}
         <CameraControls
           ref={controlsRef}
           makeDefault
@@ -295,12 +294,12 @@ export default function App() {
           maxDistance={Infinity}
         />
 
-        {/* Işıklar - Güneş'ten gelen ışık */}
+        {/* Lights - Light from the Sun */}
         <ambientLight intensity={0.3} />
         <pointLight position={[0, 0, 0]} intensity={3} distance={0} decay={1.5} />
         <directionalLight position={[5, 5, 5]} intensity={0.8} />
 
-        {/* Uzay arka planı ve güneş sistemi */}
+        {/* Space background and solar system */}
         <Suspense fallback={null}>
           <SpaceBackground />
           <SolarSystem 
@@ -308,7 +307,7 @@ export default function App() {
             setTimeControl={setTimeControl}
             onPlanetClick={(planet) => {
               setSelectedPlanet(planet)
-              // Gezegen seçildiğinde exoplanet seçimini temizle
+              // Clear exoplanet selection when planet is selected
               setSelectedTarget(null)
               setSelectedKOI(null)
             }}
@@ -318,7 +317,7 @@ export default function App() {
             onDistanceChange={setCameraDistance}
           />
           
-          {/* Seçili exoplanet marker'ı göster */}
+          {/* Show selected exoplanet marker */}
           {selectedTarget && (
             <ExoplanetMarker 
               target={selectedTarget} 
@@ -328,7 +327,7 @@ export default function App() {
         </Suspense>
       </Canvas>
 
-      {/* Sol alt: Hız Kontrol Paneli (her zaman görünür) */}
+      {/* Bottom left: Speed Control Panel (always visible) */}
       <SpeedControlPanel 
         timeControl={timeControl}
         setTimeControl={setTimeControl}
@@ -336,7 +335,7 @@ export default function App() {
         onToggle={() => togglePanel('speedControl')}
       />
 
-      {/* Sol alt sağ: Zaman Çizelgesi Slider (365 gün) */}
+      {/* Bottom left right: Time Timeline Slider (365 days) */}
       <TimeSlider 
         timeControl={timeControl}
         setTimeControl={setTimeControl}
@@ -344,7 +343,7 @@ export default function App() {
         onToggle={() => togglePanel('timeSlider')}
       />
       
-      {/* Sol üst orta: Zaman kontrol paneli (sadece solar system için) */}
+      {/* Top left center: Time control panel (only for solar system) */}
       {/* {!selectedTarget && (
         <div style={{ position: 'absolute', top: 90, left: 16, zIndex: 100 }}>
           <TimeControlPanel 
@@ -354,7 +353,7 @@ export default function App() {
         </div>
       )} */}
       
-      {/* Sağ: Analiz paneli (hem exoplanet hem gezegen bilgileri) */}
+      {/* Right: Analysis panel (both exoplanet and planet information) */}
       <AnalysisPanel 
         selectedTarget={selectedTarget}
         selectedKOI={selectedKOI}
@@ -363,7 +362,7 @@ export default function App() {
         onToggle={() => togglePanel('analysis')}
       />
       
-      {/* Alt orta: Kamera mesafesi göstergesi */}
+      {/* Bottom center: Camera distance display */}
       <CameraDistanceDisplay 
         distance={cameraDistance}
         isVisible={panelsVisible.distance}
